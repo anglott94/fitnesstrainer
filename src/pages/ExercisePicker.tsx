@@ -4,18 +4,20 @@ import { updateSettings } from '../db/db'
 import { useSettings } from '../hooks/useAppData'
 import { checkBalance, isLastOfRequiredPattern, scheduledExerciseKeys } from '../domain/balance'
 import { REQUIREMENT_LABEL } from '../domain/patterns'
+import { Disclosure } from '../components/Disclosure'
 import type { Exercise } from '../domain/types'
 
 /**
  * Übungsauswahl, gruppiert nach Bewegungsmustern.
  *
  * Die Gruppierung ist der eigentliche Zweck der Seite: Man sieht auf einen Blick,
- * welche Alternativen es zu einer Übung gibt, die man nicht mag — und dass sich der
- * Plan nur dann verschlechtert, wenn ein ganzes Muster wegfällt, nicht wenn eine
- * einzelne Übung getauscht wird.
+ * welche Alternativen es zu einer Übung gibt — und dass sich der Plan nur dann
+ * verschlechtert, wenn ein ganzes Muster wegfällt, nicht wenn eine einzelne
+ * Übung getauscht wird.
  *
- * Die letzte Übung eines Pflichtmusters lässt sich nicht abwählen. Lieber eine
- * gesperrte Schaltfläche als ein Plan, der stillschweigend eine Körperregion auslässt.
+ * Darstellung bewusst als Liste mit Trennlinien statt als Kartenstapel: Bei 30
+ * Übungen in 13 Gruppen wären das über 40 gerahmte Kacheln, und ein Rahmen um
+ * jede Zeile strukturiert nichts mehr, er lärmt nur.
  */
 export default function ExercisePicker() {
   const settings = useSettings()
@@ -29,12 +31,9 @@ export default function ExercisePicker() {
     await updateSettings({ disabledExercises: next })
   }
 
-  async function resetAll() {
-    await updateSettings({ disabledExercises: [] })
-  }
-
   const activeCount = report.patterns.reduce((n, p) => n + p.active.length, 0)
   const totalCount = report.patterns.reduce((n, p) => n + p.all.length, 0)
+  const pullOk = report.pullSets >= report.pushSets
 
   return (
     <div className="page">
@@ -43,51 +42,58 @@ export default function ExercisePicker() {
       </Link>
       <h1 className="page-title">Übungen auswählen</h1>
       <p className="page-subtitle">
-        {activeCount} von {totalCount} Übungen aktiv. Wählst du eine ab, rückt automatisch eine
-        andere aus demselben Bewegungsmuster nach.
+        {activeCount} von {totalCount} aktiv. Wählst du eine ab, rückt eine andere aus demselben
+        Muster nach.
       </p>
 
+      {/* Bilanz zuerst: Das ist die Antwort auf „ist mein Training noch vollständig". */}
       <div className={`card ${report.ok ? 'card-accent' : 'card-warn'}`}>
-        <div className="row-between" style={{ marginBottom: 10 }}>
-          <strong className="small">{report.ok ? 'Training ist vollständig' : 'Lücke im Plan'}</strong>
+        <div className="row-between">
+          <strong>{report.ok ? 'Training ist vollständig' : 'Lücke im Plan'}</strong>
           <span className={`badge ${report.ok ? 'badge-accent' : 'badge-warn'}`}>
-            {report.totalSets} Sätze / Woche
+            {report.totalSets} Sätze/Woche
           </span>
         </div>
 
-        <div className="row-between small" style={{ marginBottom: 4 }}>
-          <span className="muted">Drücken</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{report.pushSets} Sätze</span>
+        <div className="row" style={{ gap: 22, marginTop: 14 }}>
+          <div>
+            <div className="stat-value" style={{ fontSize: '1.45rem' }}>
+              {report.pushSets}
+            </div>
+            <div className="stat-label">Drücken</div>
+          </div>
+          <div style={{ color: 'var(--text-dim)', fontSize: '1.1rem', paddingTop: 6 }}>:</div>
+          <div>
+            <div
+              className="stat-value"
+              style={{ fontSize: '1.45rem', color: pullOk ? 'var(--accent)' : 'var(--warn)' }}
+            >
+              {report.pullSets}
+            </div>
+            <div className="stat-label">Ziehen</div>
+          </div>
         </div>
-        <div className="row-between small">
-          <span className="muted">Ziehen</span>
-          <span
-            style={{
-              fontVariantNumeric: 'tabular-nums',
-              color: report.pullSets >= report.pushSets ? 'var(--accent)' : 'var(--warn)',
-            }}
-          >
-            {report.pullSets} Sätze
-          </span>
-        </div>
-        <p className="tiny dim" style={{ margin: '8px 0 0' }}>
-          Beide Workouts sind so aufgebaut, dass mindestens so viele Zug- wie Drucksätze
-          zusammenkommen — abwählen einzelner Übungen kann dieses Verhältnis nicht kippen, weil
-          immer eine Übung desselben Musters nachrückt. Der Grund: Die Muskeln, die das
-          Schulterblatt zurück und nach unten ziehen, arbeiten beim Drücken kaum mit.
-        </p>
-        <p className="tiny dim" style={{ margin: '6px 0 0' }}>
-          Zur Einordnung: Das ist ein Grundsatz aus der Trainingslehre. Die verbreitete Behauptung,
-          Drücken allein verursache einen Rundrücken, ist dagegen nicht belegt — Übersichtsarbeiten
-          finden zwischen Haltung und Beschwerden nur schwache Zusammenhänge.
-        </p>
+
+        <Disclosure label="Warum das Verhältnis zählt">
+          <p>
+            Beide Workouts sind so gebaut, dass mindestens so viele Zug- wie Drucksätze
+            zusammenkommen. Abwählen kann das nicht kippen, weil immer eine Übung desselben
+            Musters nachrückt.
+          </p>
+          <p>
+            Der Grund: Die Muskeln, die das Schulterblatt zurück und nach unten ziehen, arbeiten
+            beim Drücken kaum mit. Das ist ein Grundsatz aus der Trainingslehre. Die verbreitete
+            Behauptung, Drücken allein verursache einen Rundrücken, ist dagegen nicht belegt —
+            Übersichtsarbeiten finden zwischen Haltung und Beschwerden nur schwache Zusammenhänge.
+          </p>
+        </Disclosure>
       </div>
 
       {report.problems.length > 0 && (
         <div className="stack" style={{ marginTop: 12 }}>
           {report.problems.map((p, i) => (
             <div key={i} className={`card card-tight ${p.severity === 'fehler' ? 'card-warn' : ''}`}>
-              <div className="row" style={{ alignItems: 'flex-start', gap: 8 }}>
+              <div className="row" style={{ alignItems: 'flex-start', gap: 9 }}>
                 <span
                   className="badge"
                   style={
@@ -98,7 +104,7 @@ export default function ExercisePicker() {
                 >
                   {p.severity === 'fehler' ? 'Fehlt' : 'Hinweis'}
                 </span>
-                <span className="small muted" style={{ flex: 1 }}>
+                <span className="tiny muted" style={{ flex: 1 }}>
                   {p.text}
                 </span>
               </div>
@@ -109,34 +115,19 @@ export default function ExercisePicker() {
 
       {report.patterns.map((status) => (
         <div key={status.pattern.key}>
-          <h2 className="section-title">{status.pattern.name}</h2>
-
-          <div className="card card-tight" style={{ marginBottom: 8 }}>
-            <div className="row-between" style={{ marginBottom: 6 }}>
-              <span className="tiny dim">{status.pattern.covers}</span>
-              <span
-                className={`badge ${
-                  status.pattern.requirement === 'pflicht'
-                    ? 'badge-accent'
-                    : status.pattern.requirement === 'empfohlen'
-                      ? ''
-                      : 'badge'
-                }`}
-              >
-                {REQUIREMENT_LABEL[status.pattern.requirement]}
-              </span>
-            </div>
-            <p className="tiny muted" style={{ margin: 0 }}>
-              {status.pattern.why}
-            </p>
-            <p className="tiny dim" style={{ margin: '6px 0 0' }}>
-              {status.weeklySets > 0
-                ? `${status.weeklySets} Sätze pro Woche im Plan`
-                : 'Kommt aktuell in keinem Workout vor'}
-            </p>
+          <div className="group-head" data-tone={status.pattern.requirement}>
+            <span className="group-name">{status.pattern.name}</span>
+            <span className="group-meta">
+              {REQUIREMENT_LABEL[status.pattern.requirement]}
+              {status.weeklySets > 0 ? ` · ${status.weeklySets} Sätze` : ''}
+            </span>
           </div>
 
-          <div className="stack" style={{ gap: 8 }}>
+          <p className="tiny dim" style={{ margin: '0 0 9px 13px' }}>
+            {status.pattern.covers}
+          </p>
+
+          <div className="list">
             {status.all.map((ex) => (
               <ExerciseRow
                 key={ex.key}
@@ -148,10 +139,20 @@ export default function ExercisePicker() {
               />
             ))}
           </div>
+
+          <div style={{ paddingLeft: 13 }}>
+            <Disclosure label="Wofür dieses Muster">
+              <p>{status.pattern.why}</p>
+            </Disclosure>
+          </div>
         </div>
       ))}
 
-      <button className="btn btn-ghost btn-block" style={{ marginTop: 26 }} onClick={() => void resetAll()}>
+      <button
+        className="btn btn-ghost btn-block"
+        style={{ marginTop: 30 }}
+        onClick={() => void updateSettings({ disabledExercises: [] })}
+      >
         Alle Übungen wieder aktivieren
       </button>
     </div>
@@ -172,33 +173,28 @@ function ExerciseRow({
   onToggle: () => void
 }) {
   return (
-    <div className="card card-tight" style={off ? { opacity: 0.55 } : undefined}>
-      <div className="row-between" style={{ gap: 12 }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 620 }}>{exercise.name}</span>
-            {inPlan && !off && <span className="badge badge-accent">im Plan</span>}
-          </div>
-          <Link to={`/uebungen/${exercise.key}`} className="tiny" style={{ display: 'inline-block', marginTop: 2 }}>
-            Ausführung ansehen →
+    <div className="list-row" data-off={off}>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="row" style={{ gap: 7, flexWrap: 'wrap' }}>
+          <Link to={`/uebungen/${exercise.key}`} className="list-title" style={{ color: 'inherit' }}>
+            {exercise.name}
           </Link>
-          {locked && !off && (
-            <div className="tiny dim" style={{ marginTop: 4 }}>
-              Letzte Übung dieses Pflichtmusters — nicht abwählbar
-            </div>
-          )}
+          {inPlan && !off && <span className="badge badge-accent">im Plan</span>}
         </div>
-        <button
-          className="switch"
-          data-on={!off}
-          role="switch"
-          aria-checked={!off}
-          aria-label={`${exercise.name} ${off ? 'aktivieren' : 'abwählen'}`}
-          disabled={locked && !off}
-          style={locked && !off ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-          onClick={onToggle}
-        />
+        <div className="list-sub">
+          {locked && !off ? 'Letzte Übung dieses Pflichtmusters' : 'Antippen für die Ausführung'}
+        </div>
       </div>
+      <button
+        className="switch"
+        data-on={!off}
+        role="switch"
+        aria-checked={!off}
+        aria-label={`${exercise.name} ${off ? 'aktivieren' : 'abwählen'}`}
+        disabled={locked && !off}
+        style={locked && !off ? { opacity: 0.35, cursor: 'not-allowed' } : undefined}
+        onClick={onToggle}
+      />
     </div>
   )
 }

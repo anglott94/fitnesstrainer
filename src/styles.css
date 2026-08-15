@@ -2,36 +2,51 @@
    Schiri-Trainer — Design
    Mobil zuerst: Die App wird mit verschwitzten Fingern zwischen zwei Sätzen
    bedient. Große Ziele, hoher Kontrast, wenig Text auf dem Trainingsbildschirm.
+
+   Drei Leitregeln:
+   1. Nicht alles gleich laut. Zahlen und die nächste Handlung dominieren,
+      Erklärtext liegt darunter oder hinter einem Aufklapper.
+   2. Karten nur für Dinge, die man antippt oder die zusammengehören. Listen
+      bekommen Trennlinien statt Rahmen — 40 Rahmen sind keine Struktur.
+   3. Farbe hat Bedeutung: Grün = Kraft, Blau = Laufen, Violett = Spielleitung,
+      Bernstein = Achtung. Nie dekorativ.
    --------------------------------------------------------------------------- */
 
 :root {
-  --bg: #0b1220;
-  --bg-elevated: #131c2e;
-  --bg-input: #0e1727;
-  --surface: #16213a;
-  --border: #24314d;
-  --border-strong: #35476d;
+  --bg: #0a1018;
+  --bg-elevated: #121b28;
+  --bg-input: #0d1622;
+  --surface: #182334;
+  --border: #23303f;
+  --border-soft: #1a2531;
+  --border-strong: #35475d;
 
-  --text: #eef3ff;
-  --text-muted: #93a3c2;
-  --text-dim: #6b7b9c;
+  --text: #f0f4fa;
+  --text-muted: #98a8bd;
+  --text-dim: #6b7c92;
 
   --accent: #34d399;
   --accent-strong: #10b981;
-  --accent-dim: rgba(52, 211, 153, 0.14);
+  --accent-dim: rgba(52, 211, 153, 0.13);
 
   --run: #60a5fa;
-  --run-dim: rgba(96, 165, 250, 0.14);
+  --run-dim: rgba(96, 165, 250, 0.13);
+
+  --match: #a78bfa;
+  --match-dim: rgba(167, 139, 250, 0.13);
 
   --warn: #fbbf24;
-  --warn-dim: rgba(251, 191, 36, 0.14);
+  --warn-dim: rgba(251, 191, 36, 0.12);
 
   --danger: #f87171;
-  --danger-dim: rgba(248, 113, 113, 0.14);
+  --danger-dim: rgba(248, 113, 113, 0.13);
 
-  --radius: 14px;
-  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-sm: 11px;
   --nav-height: 62px;
+
+  --gap: 12px;
+  --gap-lg: 28px;
 
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
@@ -50,8 +65,9 @@ body {
   color: var(--text);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -81,8 +97,9 @@ h2,
 h3,
 h4 {
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
   font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
 /* --- Grundgerüst --------------------------------------------------------- */
@@ -96,7 +113,7 @@ h4 {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 16px 16px 24px;
+  padding: 20px 16px 32px;
 }
 
 .page-header {
@@ -104,33 +121,39 @@ h4 {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 4px;
 }
 
 .page-title {
-  font-size: 1.55rem;
-  letter-spacing: -0.02em;
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  font-weight: 700;
 }
 
 .page-subtitle {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: 2px 0 18px;
+  font-size: 0.88rem;
+  margin: 6px 0 22px;
+  max-width: 46ch;
 }
 
+/* Abschnittsüberschrift: trägt den vertikalen Rhythmus der ganzen App. */
 .section-title {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.11em;
   color: var(--text-dim);
-  margin: 26px 0 10px;
+  margin: var(--gap-lg) 0 10px;
   font-weight: 700;
+}
+
+.section-title:first-of-type {
+  margin-top: 22px;
 }
 
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--gap);
 }
 
 .row {
@@ -159,11 +182,12 @@ h4 {
 }
 
 .small {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
 }
 
 .tiny {
-  font-size: 0.76rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .center {
@@ -172,6 +196,10 @@ h4 {
 
 .nowrap {
   white-space: nowrap;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- Karten -------------------------------------------------------------- */
@@ -184,33 +212,176 @@ h4 {
 }
 
 .card-tight {
-  padding: 12px 14px;
+  padding: 13px 14px;
 }
 
 .card-accent {
-  border-color: rgba(52, 211, 153, 0.35);
-  background: linear-gradient(180deg, rgba(52, 211, 153, 0.08), rgba(52, 211, 153, 0));
+  border-color: rgba(52, 211, 153, 0.32);
+  background: linear-gradient(165deg, rgba(52, 211, 153, 0.09), rgba(52, 211, 153, 0) 60%),
+    var(--bg-elevated);
 }
 
 .card-run {
-  border-color: rgba(96, 165, 250, 0.35);
-  background: linear-gradient(180deg, rgba(96, 165, 250, 0.08), rgba(96, 165, 250, 0));
+  border-color: rgba(96, 165, 250, 0.32);
+  background: linear-gradient(165deg, rgba(96, 165, 250, 0.09), rgba(96, 165, 250, 0) 60%),
+    var(--bg-elevated);
+}
+
+.card-match {
+  border-color: rgba(167, 139, 250, 0.32);
+  background: linear-gradient(165deg, rgba(167, 139, 250, 0.09), rgba(167, 139, 250, 0) 60%),
+    var(--bg-elevated);
 }
 
 .card-warn {
-  border-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.07);
+  border-color: rgba(251, 191, 36, 0.35);
+  background: var(--warn-dim);
 }
 
 .card-button {
   display: block;
   width: 100%;
   text-align: left;
-  transition: transform 0.08s ease, border-color 0.15s ease;
+  transition: transform 0.09s ease, border-color 0.15s ease;
 }
 
 .card-button:active {
   transform: scale(0.985);
+}
+
+/* --- Listen statt Kartenstapel ------------------------------------------
+   Für Aufzählungen, bei denen jede Zeile antippbar ist. Trennlinien statt
+   Rahmen: 40 gerahmte Karten untereinander liest niemand mehr als Struktur. */
+
+.list {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.12s ease;
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+.list-row:active {
+  background: var(--surface);
+}
+
+.list-row[data-off='true'] {
+  opacity: 0.45;
+}
+
+.list-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.list-sub {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+
+.list-chevron {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* Gruppenkopf über einer Liste — ohne eigene Karte, nur mit Farbkante. */
+.group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--border-strong);
+  margin: var(--gap-lg) 0 8px;
+}
+
+.group-head[data-tone='pflicht'] {
+  border-left-color: var(--accent);
+}
+
+.group-head[data-tone='empfohlen'] {
+  border-left-color: var(--run);
+}
+
+.group-head[data-tone='optional'] {
+  border-left-color: var(--border-strong);
+}
+
+.group-name {
+  font-size: 0.98rem;
+  font-weight: 650;
+}
+
+.group-meta {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* --- Aufklapper für Erklärtext ------------------------------------------
+   Der fachliche Hintergrund gehört in die App, aber nicht dauerhaft ins
+   Sichtfeld. Standardmäßig zu, ein Fingertipp entfernt. */
+
+.disclosure {
+  border-top: 1px solid var(--border-soft);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+
+.disclosure-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  font-size: 0.78rem;
+  font-weight: 620;
+  color: var(--text-dim);
+  padding: 2px 0;
+}
+
+.disclosure-toggle:active {
+  color: var(--text-muted);
+}
+
+.disclosure-toggle svg {
+  transition: transform 0.16s ease;
+}
+
+.disclosure-toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.disclosure-body {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  padding-top: 8px;
+}
+
+.disclosure-body p {
+  margin: 0 0 8px;
+}
+
+.disclosure-body p:last-child {
+  margin-bottom: 0;
 }
 
 /* --- Buttons ------------------------------------------------------------- */
@@ -223,11 +394,11 @@ h4 {
   min-height: 48px;
   padding: 0 18px;
   border-radius: var(--radius-sm);
-  font-weight: 620;
+  font-weight: 640;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  transition: transform 0.08s ease, background 0.15s ease;
+  transition: transform 0.09s ease, background 0.15s ease;
   text-decoration: none;
 }
 
@@ -244,7 +415,7 @@ h4 {
 .btn-primary {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
-  color: #04231a;
+  color: #03231a;
 }
 
 .btn-run {
@@ -261,7 +432,7 @@ h4 {
 
 .btn-danger {
   background: transparent;
-  border-color: rgba(248, 113, 113, 0.5);
+  border-color: rgba(248, 113, 113, 0.45);
   color: var(--danger);
 }
 
@@ -272,13 +443,14 @@ h4 {
 .btn-lg {
   min-height: 56px;
   font-size: 1.05rem;
+  border-radius: 13px;
 }
 
 .btn-sm {
   min-height: 38px;
-  padding: 0 12px;
-  font-size: 0.85rem;
-  border-radius: 8px;
+  padding: 0 13px;
+  font-size: 0.84rem;
+  border-radius: 9px;
 }
 
 /* --- Badges -------------------------------------------------------------- */
@@ -289,9 +461,9 @@ h4 {
   gap: 5px;
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.71rem;
   font-weight: 680;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.015em;
   background: var(--surface);
   color: var(--text-muted);
   border: 1px solid var(--border);
@@ -310,24 +482,83 @@ h4 {
   border-color: rgba(96, 165, 250, 0.3);
 }
 
+.badge-match {
+  background: var(--match-dim);
+  color: var(--match);
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
 .badge-warn {
   background: var(--warn-dim);
   color: var(--warn);
   border-color: rgba(251, 191, 36, 0.3);
 }
 
-/* --- Wochenübersicht ----------------------------------------------------- */
+/* --- Hero: die nächste Handlung ------------------------------------------
+   Auf der Startseite soll genau eine Sache dominieren. */
+
+.hero-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.hero-label[data-tone='run'] {
+  color: var(--run);
+}
+
+.hero-title {
+  font-size: 1.3rem;
+  letter-spacing: -0.025em;
+  margin: 6px 0 0;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Übungsvorschau im Hero: zwei Spalten, damit sieben Zeilen kompakt bleiben. */
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 5px 12px;
+  margin: 14px 0 16px;
+  font-size: 0.85rem;
+}
+
+.preview-grid > .name {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-grid > .val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* --- Wochenfortschritt --------------------------------------------------- */
 
 .week-dots {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .dot {
   width: 26px;
-  height: 8px;
+  height: 7px;
   border-radius: 999px;
   background: var(--border);
+  transition: background 0.2s ease;
 }
 
 .dot-done-strength {
@@ -347,7 +578,7 @@ h4 {
 }
 
 .field-label {
-  font-size: 0.8rem;
+  font-size: 0.79rem;
   color: var(--text-muted);
   font-weight: 600;
 }
@@ -357,11 +588,12 @@ h4 {
 .textarea {
   width: 100%;
   min-height: 48px;
-  padding: 10px 12px;
+  padding: 11px 13px;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .input:focus,
@@ -373,18 +605,19 @@ h4 {
 .textarea {
   min-height: 88px;
   resize: vertical;
+  line-height: 1.5;
 }
 
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--gap);
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--gap);
 }
 
 .switch-row {
@@ -392,12 +625,17 @@ h4 {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.switch-row:first-child {
+  padding-top: 0;
 }
 
 .switch-row:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
 .switch {
@@ -405,7 +643,7 @@ h4 {
   width: 50px;
   height: 30px;
   border-radius: 999px;
-  background: var(--border);
+  background: var(--border-strong);
   border: none;
   flex-shrink: 0;
   transition: background 0.18s ease;
@@ -437,10 +675,10 @@ h4 {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(11, 18, 32, 0.94);
-  backdrop-filter: blur(10px);
+  background: rgba(10, 16, 24, 0.94);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  padding: calc(var(--safe-top) + 10px) 16px 10px;
+  padding: calc(var(--safe-top) + 11px) 16px 11px;
 }
 
 .progress-bar {
@@ -448,7 +686,7 @@ h4 {
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 11px;
 }
 
 .progress-bar > span {
@@ -464,22 +702,23 @@ h4 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  transition: border-color 0.15s ease, opacity 0.2s ease;
 }
 
 .exercise-card[data-current='true'] {
   border-color: rgba(52, 211, 153, 0.5);
-  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.18);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.15), 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .exercise-card[data-complete='true'] {
-  opacity: 0.62;
+  opacity: 0.55;
 }
 
 .exercise-head {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   width: 100%;
   text-align: left;
 }
@@ -500,24 +739,23 @@ h4 {
 
 .exercise-index[data-complete='true'] {
   background: var(--accent);
-  color: #04231a;
+  color: #03231a;
 }
 
 .exercise-body {
-  padding: 0 16px 16px;
-  border-top: 1px solid var(--border);
-  padding-top: 14px;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border-soft);
 }
 
-/* Satzzeilen */
+/* Satzzeilen — die am häufigsten berührte Stelle der App. */
 
 .set-row {
   display: grid;
   grid-template-columns: 34px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .set-row:last-child {
@@ -525,7 +763,7 @@ h4 {
 }
 
 .set-label {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-dim);
   font-weight: 700;
 }
@@ -537,9 +775,9 @@ h4 {
 }
 
 .step-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   display: grid;
@@ -547,6 +785,7 @@ h4 {
   font-size: 1.25rem;
   font-weight: 700;
   flex-shrink: 0;
+  transition: background 0.12s ease;
 }
 
 .step-btn:active {
@@ -554,11 +793,12 @@ h4 {
 }
 
 .rep-value {
-  min-width: 62px;
+  min-width: 66px;
   text-align: center;
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1.45rem;
+  font-weight: 720;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .rep-value[data-below='true'] {
@@ -570,20 +810,21 @@ h4 {
 }
 
 .check-btn {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
   border: 2px solid var(--border-strong);
   background: transparent;
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  transition: background 0.14s ease, border-color 0.14s ease;
 }
 
 .check-btn[data-done='true'] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #04231a;
+  color: #03231a;
 }
 
 /* --- Pausentimer --------------------------------------------------------- */
@@ -594,8 +835,8 @@ h4 {
   right: 0;
   bottom: 0;
   z-index: 60;
-  background: rgba(11, 18, 32, 0.97);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 16, 24, 0.97);
+  backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-strong);
   padding: 18px 16px calc(18px + var(--safe-bottom));
   animation: slide-up 0.22s ease;
@@ -635,10 +876,10 @@ h4 {
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: 1.55rem;
+  font-size: 1.6rem;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .rest-controls {
@@ -648,14 +889,15 @@ h4 {
 
 .rest-buttons {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   margin-top: 10px;
 }
 
 .rest-buttons .btn {
   flex: 1;
   min-height: 44px;
-  padding: 0 10px;
+  padding: 0 8px;
+  font-size: 0.86rem;
 }
 
 /* --- Diagramme ----------------------------------------------------------- */
@@ -668,37 +910,39 @@ h4 {
 }
 
 .chart-empty {
-  padding: 28px 12px;
+  padding: 26px 12px;
   text-align: center;
   color: var(--text-dim);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 10px;
+  gap: 9px;
 }
 
 .stat {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 13px 12px;
 }
 
+/* Zahlen sind auf Statistikseiten die Hauptsache — entsprechend groß. */
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 720;
-  letter-spacing: -0.02em;
+  font-size: 1.7rem;
+  font-weight: 730;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .stat-label {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-dim);
-  margin-top: 2px;
+  margin-top: 3px;
+  line-height: 1.35;
 }
 
 /* --- Navigation ---------------------------------------------------------- */
@@ -710,8 +954,8 @@ h4 {
   bottom: 0;
   z-index: 50;
   display: flex;
-  background: rgba(15, 23, 40, 0.96);
-  backdrop-filter: blur(12px);
+  background: rgba(13, 20, 30, 0.97);
+  backdrop-filter: blur(14px);
   border-top: 1px solid var(--border);
   padding-bottom: var(--safe-bottom);
 }
@@ -725,9 +969,10 @@ h4 {
   justify-content: center;
   gap: 3px;
   color: var(--text-dim);
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .nav-item[aria-current='page'] {
@@ -743,11 +988,11 @@ h4 {
 
 .list-plain {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 19px;
 }
 
 .list-plain li {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .list-plain li:last-child {
@@ -756,18 +1001,19 @@ h4 {
 
 .divider {
   height: 1px;
-  background: var(--border);
-  margin: 16px 0;
+  background: var(--border-soft);
+  margin: 14px 0;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-muted);
+  color: var(--text-dim);
   text-decoration: none;
-  font-size: 0.88rem;
-  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 14px;
 }
 
 .toast {
@@ -781,13 +1027,14 @@ h4 {
   border-radius: var(--radius-sm);
   padding: 12px 16px;
   max-width: calc(100% - 32px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
   animation: slide-up 0.2s ease;
+  font-size: 0.88rem;
 }
 
 .chip-row {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
@@ -797,8 +1044,9 @@ h4 {
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
+  transition: border-color 0.14s ease, color 0.14s ease;
 }
 
 .chip[data-active='true'] {
@@ -809,7 +1057,7 @@ h4 {
 
 @media (min-width: 720px) {
   .page {
-    padding-top: 24px;
+    padding-top: 28px;
   }
 }
 

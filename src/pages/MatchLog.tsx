@@ -211,33 +211,36 @@ function RatingGroup({
   onChange: (v: number) => void
 }) {
   return (
-    <div className="stack" style={{ gap: 8 }}>
-      {anchors.map((a) => (
-        <button
-          key={a.value}
-          className="card card-tight card-button"
-          data-selected={value === a.value}
-          style={
-            value === a.value
-              ? { borderColor: 'var(--accent)', background: 'var(--accent-dim)' }
-              : undefined
-          }
-          onClick={() => onChange(a.value)}
-        >
-          <div className="row" style={{ alignItems: 'flex-start' }}>
+    <div className="list">
+      {anchors.map((a) => {
+        const selected = value === a.value
+        return (
+          <button
+            key={a.value}
+            className="list-row"
+            style={selected ? { background: 'var(--match-dim)' } : undefined}
+            onClick={() => onChange(a.value)}
+          >
             <span
               className="exercise-index"
-              data-complete={value === a.value}
-              style={{ marginTop: 0 }}
+              style={{
+                marginTop: 0,
+                flexShrink: 0,
+                background: selected ? 'var(--match)' : 'var(--surface)',
+                color: selected ? '#1a1033' : 'var(--text-muted)',
+              }}
             >
               {a.value}
             </span>
-            <span className="small" style={{ flex: 1 }}>
+            <span
+              className="small"
+              style={{ flex: 1, color: selected ? 'var(--text)' : 'var(--text-muted)' }}
+            >
               {a.label}
             </span>
-          </div>
-        </button>
-      ))}
+          </button>
+        )
+      })}
     </div>
   )
 }

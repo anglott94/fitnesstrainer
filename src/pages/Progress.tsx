@@ -27,6 +27,7 @@ import {
 import { formatDateShort, todayISO } from '../lib/date'
 import { upsertBodyLog } from '../db/repo'
 import { hasOwnPerformanceData } from '../db/db'
+import { Disclosure } from '../components/Disclosure'
 import { weeklySeries } from '../lib/stats'
 
 export default function Progress() {
@@ -167,8 +168,7 @@ export default function Progress() {
           emptyHint="Noch keine abgeschlossene Krafteinheit."
         />
         <p className="tiny dim" style={{ margin: '10px 0 0' }}>
-          Summe aller Wiederholungen je Woche. Einbeinige Übungen zählen beide Seiten, Halteübungen
-          fließen nicht ein.
+          Einbeinige Übungen zählen beide Seiten, Halteübungen fließen nicht ein.
         </p>
       </div>
 
@@ -191,8 +191,8 @@ export default function Progress() {
           emptyHint="Noch nichts eingetragen."
         />
         <p className="tiny dim" style={{ margin: '10px 0 0' }}>
-          Kraft und Laufen zusammen. Regelmäßigkeit schlägt einzelne harte Wochen — diese Kurve ist
-          die aussagekräftigste im ganzen Verlauf.
+          Kraft und Laufen zusammen. Regelmäßigkeit schlägt einzelne harte Wochen — diese Kurve
+          sagt am meisten aus.
         </p>
       </div>
 
@@ -224,58 +224,61 @@ export default function Progress() {
 
       <h2 className="section-title">Deine Zonen</h2>
 
-      <div className="card card-warn" style={{ marginBottom: 12 }}>
-        <strong className="small">Warum das nicht zu den Zonen deiner Uhr passt</strong>
-        <p className="small muted" style={{ margin: '6px 0 0' }}>
-          Die Uhr teilt die HFmax in fünf gleich breite Bänder — „Zone 2" heißt dort schlicht
-          60–70 % HFmax. Dieser Plan richtet sich nach dem physiologischen Modell, dessen Grenzen
-          die beiden Laktatschwellen sind. Deshalb steht bei jeder Zone die Garmin-Nummer dabei.
-        </p>
-        <p className="small muted" style={{ margin: '8px 0 0' }}>
-          Im Zweifel gilt der Sprechtest, nicht die Zahl: Beim lockeren Lauf müssen ganze Sätze
-          gehen. Wenn nicht, ist es zu schnell — unabhängig davon, was die Uhr anzeigt.
-        </p>
-      </div>
-
-      <div className="card">
-        {!hasOwnPerformanceData(settings) && (
-          <p className="tiny" style={{ marginTop: 0, color: 'var(--warn)' }}>
-            <strong>Achtung: Platzhalterwerte.</strong> Die Zonen unten stimmen erst, wenn du unter
+      {!hasOwnPerformanceData(settings) && (
+        <div className="card card-warn" style={{ marginBottom: 12 }}>
+          <p className="small" style={{ margin: 0 }}>
+            <strong>Achtung: Platzhalterwerte.</strong> Die Zonen stimmen erst, wenn du unter
             „Mehr → Leistungsdaten" deine eigene HFmax und dein letztes Testergebnis einträgst.
           </p>
-        )}
-        <p className="tiny dim" style={{ marginTop: 0 }}>
-          Abgeleitet aus HFmax {zones.hrMax} und deinem letzten Test ({settings.testDistanceKm} km
-          in {formatPaceSec(zones.testPaceSec)} min/km). Der Ruhepuls ({zones.hrRest}) geht nur in
-          die Karvonen-Angabe ein und verschiebt keine einzige Vorgabe.
-        </p>
+        </div>
+      )}
+
+      <div className="list">
         {zones.list.map((zone) => (
-          <div key={zone.key} style={{ padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+          <div key={zone.key} className="list-row" style={{ display: 'block' }}>
             <div className="row-between">
               <strong className="small">{zone.name}</strong>
               {zone.hr && (
-                <span
-                  className="small nowrap"
-                  style={{ color: 'var(--run)', fontVariantNumeric: 'tabular-nums' }}
-                >
+                <span className="small nowrap num" style={{ color: 'var(--run)' }}>
                   {formatHrRange(zone.hr)}
                 </span>
               )}
             </div>
-            <div className="row-between tiny dim" style={{ marginTop: 2 }}>
+            <div className="row-between list-sub" style={{ marginTop: 3 }}>
               <span>{zone.garmin}</span>
-              {zone.pace && <span className="nowrap">{formatPaceRange(zone.pace)}</span>}
+              {zone.pace && <span className="nowrap num">{formatPaceRange(zone.pace)}</span>}
             </div>
-            {zone.hr && (
-              <div className="tiny dim" style={{ marginTop: 2 }}>
-                {zone.hr.percentLabel}
-              </div>
-            )}
-            <p className="tiny muted" style={{ margin: '4px 0 0' }}>
-              {zone.purpose}
-            </p>
           </div>
         ))}
+      </div>
+
+      <div className="card card-tight" style={{ marginTop: 12 }}>
+        <p className="tiny dim" style={{ margin: 0 }}>
+          Aus HFmax {zones.hrMax} und deinem Test über {settings.testDistanceKm} km in{' '}
+          {formatPaceSec(zones.testPaceSec)} min/km. Der Ruhepuls ({zones.hrRest}) verschiebt keine
+          Grenze, er geht nur in die Karvonen-Angabe ein.
+        </p>
+
+        <Disclosure label="Warum das nicht zu den Zonen deiner Uhr passt">
+          <p>
+            Die Uhr teilt die HFmax in fünf gleich breite Bänder — „Zone 2" heißt dort schlicht
+            60–70 % HFmax. Dieser Plan richtet sich nach dem physiologischen Modell, dessen Grenzen
+            die beiden Laktatschwellen sind. Deshalb steht bei jeder Zone die Garmin-Nummer dabei.
+          </p>
+          <p>
+            Im Zweifel gilt der Sprechtest, nicht die Zahl: Beim lockeren Lauf müssen ganze Sätze
+            gehen. Wenn nicht, ist es zu schnell — unabhängig davon, was die Uhr anzeigt.
+          </p>
+        </Disclosure>
+
+        <Disclosure label="Wofür jede Zone gut ist">
+          {zones.list.map((zone) => (
+            <p key={zone.key}>
+              <strong style={{ color: 'var(--text)' }}>{zone.name}</strong>
+              {zone.hr ? ` (${zone.hr.percentLabel})` : ''}: {zone.purpose}
+            </p>
+          ))}
+        </Disclosure>
       </div>
 
       <h2 className="section-title">Körpergewicht</h2>

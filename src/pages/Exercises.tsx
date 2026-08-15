@@ -4,6 +4,7 @@ import { exercisesForPattern } from '../domain/exercises'
 import { PATTERNS, REQUIREMENT_LABEL } from '../domain/patterns'
 import { scheduledExerciseKeys } from '../domain/balance'
 import { useExerciseStates, useSettings } from '../hooks/useAppData'
+import { Disclosure } from '../components/Disclosure'
 
 export default function Exercises() {
   const states = useExerciseStates()
@@ -35,17 +36,19 @@ export default function Exercises() {
 
       <div className="card card-tight" style={{ marginTop: 12 }}>
         <strong className="small">Warum nach Bewegungsmustern</strong>
-        <p className="small muted" style={{ margin: '6px 0 0' }}>
-          Ein Ganzkörperplan gilt als vollständig, wenn er waagerechtes und senkrechtes Drücken,
-          waagerechtes und senkrechtes Ziehen, eine knie- und eine hüftdominante Beinübung sowie
-          Rumpfarbeit in den drei Stabilisationsrichtungen enthält. Diese Ordnung stammt aus der
-          Trainingslehre und verhindert systematisch, dass ganze Bereiche durchs Raster fallen —
-          etwa der Rücken als Gegenspieler zum vielen Drücken.
-        </p>
-        <p className="small muted" style={{ margin: '8px 0 0' }}>
-          Dazu kommen drei Muster, die bei hoher Lauf- und Sprintbelastung gesondert begründet sind:
-          Wade und Achillessehne, Adduktoren und Hüftabduktoren.
-        </p>
+        <Disclosure label="Erklärung" >
+          <p>
+            Ein Ganzkörperplan gilt als vollständig, wenn er waagerechtes und senkrechtes Drücken,
+            waagerechtes und senkrechtes Ziehen, eine knie- und eine hüftdominante Beinübung sowie
+            Rumpfarbeit in den drei Stabilisationsrichtungen enthält. Diese Ordnung stammt aus der
+            Trainingslehre und verhindert systematisch, dass ganze Bereiche durchs Raster fallen —
+            etwa der Rücken als Gegenspieler zum vielen Drücken.
+          </p>
+          <p>
+            Dazu kommen drei Muster, die bei hoher Lauf- und Sprintbelastung gesondert begründet
+            sind: Wade und Achillessehne, Adduktoren und Hüftabduktoren.
+          </p>
+        </Disclosure>
       </div>
 
       {PATTERNS.map((pattern) => {
@@ -53,39 +56,37 @@ export default function Exercises() {
         if (items.length === 0) return null
         return (
           <div key={pattern.key}>
-            <h2 className="section-title">{pattern.name}</h2>
-            <p className="tiny dim" style={{ margin: '-4px 2px 10px' }}>
-              {pattern.covers} · {REQUIREMENT_LABEL[pattern.requirement]}
-              {pattern.balance ? ` · zählt als ${pattern.balance === 'push' ? 'Drücken' : 'Ziehen'}` : ''}
+            <div className="group-head" data-tone={pattern.requirement}>
+              <span className="group-name">{pattern.name}</span>
+              <span className="group-meta">
+                {REQUIREMENT_LABEL[pattern.requirement]}
+                {pattern.balance ? ` · ${pattern.balance === 'push' ? 'Drücken' : 'Ziehen'}` : ''}
+              </span>
+            </div>
+            <p className="tiny dim" style={{ margin: '0 0 9px 13px' }}>
+              {pattern.covers}
             </p>
-            <div className="stack">
+            <div className="list">
               {items.map((ex) => {
                 const off = disabled.includes(ex.key)
                 const target = states.find((s) => s.key === ex.key)?.target ?? ex.startTarget
                 return (
-                  <Link
-                    key={ex.key}
-                    to={`/uebungen/${ex.key}`}
-                    className="card card-tight card-button"
-                    style={off ? { opacity: 0.5 } : undefined}
-                  >
-                    <div className="row-between">
-                      <div style={{ minWidth: 0 }}>
-                        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 620 }}>{ex.name}</span>
-                          {off && <span className="badge">abgewählt</span>}
-                          {!off && scheduled.has(ex.key) && (
-                            <span className="badge badge-accent">im Plan</span>
-                          )}
-                        </div>
-                        <div className="tiny dim">
-                          Vorgabe {target}
-                          {ex.unit === 'seconds' ? 's' : ' Wdh'}
-                          {ex.unilateral ? ' je Seite' : ''}
-                        </div>
+                  <Link key={ex.key} to={`/uebungen/${ex.key}`} className="list-row" data-off={off}>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="row" style={{ gap: 7, flexWrap: 'wrap' }}>
+                        <span className="list-title">{ex.name}</span>
+                        {off && <span className="badge">abgewählt</span>}
+                        {!off && scheduled.has(ex.key) && (
+                          <span className="badge badge-accent">im Plan</span>
+                        )}
                       </div>
-                      <span className="dim">›</span>
+                      <div className="list-sub">
+                        {target}
+                        {ex.unit === 'seconds' ? 's' : ' Wdh'}
+                        {ex.unilateral ? ' je Seite' : ''}
+                      </div>
                     </div>
+                    <span className="list-chevron">›</span>
                   </Link>
                 )
               })}

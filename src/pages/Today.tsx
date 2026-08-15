@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   useActiveSession,
@@ -215,13 +215,13 @@ export default function Today() {
       )}
 
       <h2 className="section-title">Spielleitung</h2>
-      <Link to="/spiel/neu" className="card card-tight card-button">
+      <Link to="/spiel/neu" className="card card-tight card-match card-button">
         <div className="row-between">
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 620 }}>Spiel nachbereiten</div>
             <div className="tiny dim">Positionierung und Disziplinkontrolle bewerten</div>
           </div>
-          <span className="dim">›</span>
+          <span className="list-chevron">›</span>
         </div>
       </Link>
     </div>
@@ -279,44 +279,52 @@ function StrengthPreview({
 
   return (
     <div className="card card-accent">
-      <div className="row-between" style={{ marginBottom: 4 }}>
-        <h3>{workout.name}</h3>
-        <span className="badge badge-accent">{minutes} Min</span>
-      </div>
-      <p className="small muted" style={{ margin: '0 0 12px' }}>
-        {workout.focus}
-      </p>
+      <span className="hero-label">Krafttraining</span>
+      <h3 className="hero-title">{workout.name.replace(/^Workout [AB] — /, '')}</h3>
 
-      <div className="chip-row" style={{ marginBottom: 14 }}>
+      <div className="hero-meta">
+        <span>
+          <strong>{minutes}</strong> <span className="dim">Min</span>
+        </span>
+        <span>
+          <strong>{blocks.length}</strong> <span className="dim">Übungen</span>
+        </span>
+        <span>
+          <strong>{totalSets}</strong> <span className="dim">Sätze</span>
+        </span>
+      </div>
+
+      <div className="chip-row" style={{ marginTop: 14 }}>
         <button className="chip" data-active={!short} onClick={() => setShort(false)}>
-          Volles Training · {workout.approxMinutes} Min
+          Voll · {workout.approxMinutes} Min
         </button>
         <button className="chip" data-active={short} onClick={() => setShort(true)}>
-          Kurzform · {workout.shortApproxMinutes} Min
+          Kurz · {workout.shortApproxMinutes} Min
         </button>
       </div>
 
-      <p className="tiny dim" style={{ margin: '0 0 12px' }}>
-        {blocks.length} Übungen · {totalSets} Sätze
-        {short && dropped > 0 ? ` · ${dropped} Übungen entfallen` : ''}
-      </p>
-
-      <div className="stack" style={{ gap: 6, marginBottom: 16 }}>
+      <div className="preview-grid">
         {blocks.map((block) => {
           const ex = getExercise(block.exerciseKey)
           const target = adjustTarget(targetFor(block.exerciseKey, states), isDeload, ex.unit)
           const sets = adjustSets(block.sets, isDeload)
           return (
-            <div key={block.exerciseKey} className="row-between small">
-              <span className="muted">{ex.name}</span>
-              <span className="nowrap" style={{ fontVariantNumeric: 'tabular-nums' }}>
+            <Fragment key={block.exerciseKey}>
+              <span className="name">{ex.name}</span>
+              <span className="val">
                 {sets} × {target}
                 {ex.unit === 'seconds' ? 's' : ''}
               </span>
-            </div>
+            </Fragment>
           )
         })}
       </div>
+
+      {short && dropped > 0 && (
+        <p className="tiny dim" style={{ margin: '-6px 0 14px' }}>
+          {dropped} Übungen entfallen in der Kurzform.
+        </p>
+      )}
 
       <button className="btn btn-primary btn-block btn-lg" onClick={() => onStart(short)}>
         {short ? 'Kurzform starten' : 'Training starten'}
@@ -341,41 +349,33 @@ function RunPreview({
 
   return (
     <Link to={`/lauf/${runKey}`} className="card card-run card-button">
-      <div className="row-between" style={{ marginBottom: 4 }}>
-        <h3>{run.name}</h3>
-        <span className="badge badge-run">
-          {run.full.approxMinutes} / {run.short.approxMinutes} Min
+      <span className="hero-label" data-tone="run">
+        Laufeinheit
+      </span>
+      <h3 className="hero-title">{run.name}</h3>
+
+      <div className="hero-meta">
+        <span>
+          <strong>{run.full.approxMinutes}</strong> <span className="dim">Min</span>
+          <span className="dim"> · kurz {run.short.approxMinutes}</span>
         </span>
+        {target.hr && (
+          <span className="num" style={{ color: 'var(--run)' }}>
+            {formatHrRange(target.hr)}
+          </span>
+        )}
+        {target.pace && <span className="num muted">{formatPaceRange(target.pace)}</span>}
       </div>
 
-      {(target.hr || target.pace) && (
-        <div className="row small" style={{ gap: 14, margin: '6px 0 10px' }}>
-          {target.hr && (
-            <span style={{ color: 'var(--run)', fontVariantNumeric: 'tabular-nums' }}>
-              {formatHrRange(target.hr)}
-            </span>
-          )}
-          {target.pace && (
-            <span className="muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
-              {formatPaceRange(target.pace)}
-            </span>
-          )}
-        </div>
-      )}
-
-      <p className="small muted" style={{ margin: '0 0 12px' }}>
-        {run.why}
-      </p>
       {isPriority && (
-        <p className="tiny" style={{ margin: '0 0 12px', color: 'var(--run)' }}>
+        <p className="tiny" style={{ margin: '12px 0 0', color: 'var(--run)' }}>
           Wenn diese Woche nur ein Lauf klappt, dann dieser.
         </p>
       )}
-      <p className="tiny dim" style={{ margin: '0 0 12px' }}>
-        Es gibt eine Kurzform mit {run.short.approxMinutes} Minuten — auswählbar auf der
-        nächsten Seite.
-      </p>
-      <span className="btn btn-run btn-block">Einheit ansehen</span>
+
+      <span className="btn btn-run btn-block" style={{ marginTop: 16 }}>
+        Einheit ansehen
+      </span>
     </Link>
   )
 }

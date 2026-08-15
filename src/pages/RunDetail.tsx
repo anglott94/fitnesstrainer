@@ -4,6 +4,7 @@ import { getRun, RUN_BY_KEY, RUN_TYPE_LABEL } from '../domain/runs'
 import { formatHrRange, formatPaceRange, zoneByKey } from '../domain/zones'
 import { useSettings, useZones } from '../hooks/useAppData'
 import { Toast } from '../components/Toast'
+import { Disclosure } from '../components/Disclosure'
 
 export default function RunDetail() {
   const { key } = useParams<{ key: string }>()
@@ -102,13 +103,9 @@ export default function RunDetail() {
           {run.why}
         </p>
         {run.evidence && (
-          <>
-            <div className="divider" />
-            <strong className="tiny dim">Hintergrund</strong>
-            <p className="tiny muted" style={{ margin: '4px 0 0' }}>
-              {run.evidence}
-            </p>
-          </>
+          <Disclosure label="Sportwissenschaftlicher Hintergrund">
+            <p>{run.evidence}</p>
+          </Disclosure>
         )}
       </div>
 
@@ -129,7 +126,7 @@ export default function RunDetail() {
       </div>
 
       <h2 className="section-title">Ablauf</h2>
-      <div className="stack">
+      <div className="card">
         <Phase title="Aufwärmen" items={variant.warmup(zones)} />
         <Phase title="Hauptteil" items={variant.main(zones)} accent />
         <Phase title="Ausklang" items={variant.cooldown(zones)} />
@@ -158,11 +155,24 @@ export default function RunDetail() {
   )
 }
 
+/**
+ * Ein Abschnitt des Ablaufs. Alle drei liegen in einer gemeinsamen Karte und werden
+ * nur durch eine Farbkante getrennt — drei einzelne Karten untereinander erzeugen
+ * mehr Rahmen als Struktur.
+ */
 function Phase({ title, items, accent }: { title: string; items: string[]; accent?: boolean }) {
   return (
-    <div className={`card ${accent ? 'card-run' : ''}`}>
-      <strong className="small">{title}</strong>
-      <ul className="list-plain small muted" style={{ margin: '8px 0 0' }}>
+    <div
+      style={{
+        borderLeft: `3px solid ${accent ? 'var(--run)' : 'var(--border-strong)'}`,
+        paddingLeft: 12,
+        marginBottom: 18,
+      }}
+    >
+      <strong className="small" style={accent ? { color: 'var(--run)' } : undefined}>
+        {title}
+      </strong>
+      <ul className="list-plain small muted" style={{ margin: '6px 0 0' }}>
         {items.map((item, i) =>
           // Leerzeilen trennen die Blöcke einer Kombi-Einheit optisch.
           item === '' ? (
