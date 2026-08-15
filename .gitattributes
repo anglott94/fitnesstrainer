@@ -1,0 +1,7 @@
+# Zeilenenden im Repository immer als LF speichern, im Arbeitsverzeichnis unter
+# Windows als CRLF auschecken. Sonst meldet git bei jedem Commit Änderungen an
+# Dateien, die niemand angefasst hat.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
