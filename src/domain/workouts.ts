@@ -4,31 +4,46 @@ import { exercisesForPattern, getExercise } from './exercises'
 /**
  * Zwei Ganzkörper-Workouts im Wechsel (A, B, A, B ...).
  *
- * Beide Einheiten sind Ganzkörper mit unterschiedlichem Schwerpunkt. Das ist
- * bei nur 1–2 Krafteinheiten pro Woche deutlich sinnvoller als ein klassischer
- * Split: selbst wenn eine Woche nur ein Training zustande kommt, wurde der
- * ganze Körper belastet.
+ * ── Warum kein Split ───────────────────────────────────────────────────────
  *
- * Reihenfolge in beiden Workouts: Sprünge zuerst (brauchen ein ausgeruhtes
- * Nervensystem), dann die schwerste Kraftübung, Vorsorge- und Rumpfarbeit ans Ende.
+ * Jede Einheit enthält einen Druck, einen Zug, eine knie- und eine hüftdominante
+ * Beinübung. Physiologisch wäre ein Split gleichwertig: Sobald das Wochenvolumen
+ * gleich bleibt, macht es für Kraft und Muskelaufbau keinen belegbaren Unterschied,
+ * ob eine Übung einmal mit vier Sätzen oder zweimal mit zwei Sätzen trainiert wird
+ * (Schoenfeld et al., J Sports Sci 2019).
+ *
+ * Der Grund ist ein organisatorischer: Bei ein bis zwei Einheiten pro Woche fällt
+ * regelmäßig eine aus. Mit einem Split hieße das, in dieser Woche gar nicht gezogen
+ * oder gar nicht gedrückt zu haben — bei zwei geplanten Einheiten mit 50 Prozent
+ * Wahrscheinlichkeit. Vollständige Einheiten machen den Plan gegen Ausfälle robust.
+ *
+ * Gegen das Zusammenlegen spricht auch nichts: Druck und Zug sind Gegenspieler und
+ * ermüden sich gegenseitig kaum. Wer Zeit sparen will, kann Klimmzüge und
+ * Liegestütze im Wechsel mit kürzerer Pause ausführen.
+ *
+ * ── Reihenfolge ────────────────────────────────────────────────────────────
+ *
+ * 1. Sprünge — brauchen ein ausgeruhtes Nervensystem, kosten kaum Kraft.
+ * 2. Zugbewegung — die limitierende Übung, deshalb vor dem Drücken.
+ * 3. Druckbewegung, dann Beine, dann Vorsorge und Rumpf.
  *
  * ── Kurzform ───────────────────────────────────────────────────────────────
- * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Gestrichen
- * wird von hinten nach vorne — was am Ende steht, ist am ehesten verzichtbar. Was
- * bleibt, ist in beiden Workouts dasselbe Gerüst: ein Sprung, die Hauptkraftübung,
- * eine Zugbewegung oder eine einbeinige Beinübung und eine Vorsorgeübung.
+ *
+ * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Erhalten
+ * bleiben die vier Grundmuster plus der Sprung — Vorsorge- und Rumpfarbeit fällt
+ * zuerst weg, weil sie sich am ehesten nebenbei nachholen lässt.
  */
 export const WORKOUTS: WorkoutTemplate[] = [
   {
     key: 'A',
-    name: 'Workout A — Drücken & Beine',
-    focus: 'Sprungkraft, Brust, Schulter, Trizeps, Oberschenkel, Waden, Leiste',
-    approxMinutes: 35,
-    shortApproxMinutes: 22,
+    name: 'Workout A — Klimmzüge & Liegestütze',
+    focus: 'Sprung, Zug senkrecht, Druck waagerecht, Knie, Hamstrings, Wade, Rumpf',
+    approxMinutes: 38,
+    shortApproxMinutes: 25,
     warmup: [
       '20× Armkreisen vorwärts und rückwärts',
+      '10× Schulterblätter im Hängen nach unten ziehen und wieder lösen',
       '15 Kniebeugen ohne Gewicht, langsam und tief',
-      '10 Liegestütze an der Wand oder Tischkante',
       '30 Sekunden auf der Stelle laufen mit Kniehub',
     ],
     blocks: [
@@ -39,23 +54,28 @@ export const WORKOUTS: WorkoutTemplate[] = [
         restSec: 75,
         note: 'Jeder Sprung maximal — lieber weniger als unsauber. Diesen Block überspringen, wenn du heute schon eine Kombi-Einheit mit Sprints gelaufen bist.',
       },
+      {
+        exerciseKey: 'pullup',
+        sets: 4,
+        shortSets: 3,
+        restSec: 120,
+        note: 'Steht bewusst vor den Liegestützen: die limitierende Übung gehört an die frischeste Stelle.',
+      },
       { exerciseKey: 'pushup', sets: 4, shortSets: 3, restSec: 90 },
       { exerciseKey: 'split_squat', sets: 3, shortSets: 2, restSec: 90, note: 'Vorgabe gilt je Bein' },
-      { exerciseKey: 'pike_pushup', sets: 3, shortSets: 0, restSec: 75 },
+      {
+        exerciseKey: 'nordic_curl',
+        sets: 3,
+        shortSets: 2,
+        restSec: 90,
+        note: 'Absenken betont langsam — das ist die eigentliche Übung. In den ersten zwei Wochen bewusst nur halbe Bewegung: Diese Übung erzeugt stärkeren Muskelkater als alles andere im Plan.',
+      },
       {
         exerciseKey: 'calf_raise',
         sets: 3,
-        shortSets: 2,
+        shortSets: 0,
         restSec: 60,
         note: 'Vorgabe gilt je Bein — betont langsam ablassen',
-      },
-      {
-        exerciseKey: 'copenhagen',
-        sets: 3,
-        shortSets: 2,
-        restSec: 45,
-        note: 'Sekunden je Seite',
-        altPatterns: ['abduction'],
       },
       {
         exerciseKey: 'dead_bug',
@@ -74,12 +94,12 @@ export const WORKOUTS: WorkoutTemplate[] = [
   },
   {
     key: 'B',
-    name: 'Workout B — Ziehen & Rückseite',
-    focus: 'Richtungswechsel, Rücken, Bizeps, Hamstrings, Gesäß, seitlicher Rumpf',
-    approxMinutes: 35,
-    shortApproxMinutes: 22,
+    name: 'Workout B — Rudern & Überkopfdrücken',
+    focus: 'Sprung, Zug waagerecht, Druck über Kopf, Knie, Beinrückseite, Leiste, Rumpf',
+    approxMinutes: 34,
+    shortApproxMinutes: 24,
     warmup: [
-      '20× Schulterblätter zusammenziehen und lösen, im Hängen oder Stehen',
+      '20× Armkreisen vorwärts und rückwärts',
       '10 Hüftbrücken beidbeinig',
       '10 Good Mornings ohne Gewicht',
       '30 Sekunden Anfersen auf der Stelle',
@@ -92,22 +112,29 @@ export const WORKOUTS: WorkoutTemplate[] = [
         restSec: 75,
         note: 'Vorgabe gilt je Bein. Erst wenn die Landung sicher steht, schneller springen. Überspringen, wenn heute schon eine Kombi-Einheit mit Sprints gelaufen wurde.',
       },
-      { exerciseKey: 'pullup', sets: 4, shortSets: 3, restSec: 120 },
-      { exerciseKey: 'row_inverted', sets: 3, shortSets: 2, restSec: 90 },
       {
-        exerciseKey: 'nordic_curl',
+        exerciseKey: 'row_inverted',
         sets: 3,
         shortSets: 2,
         restSec: 90,
-        note: 'Absenken betont langsam — das ist die eigentliche Übung. In den ersten zwei Wochen bewusst nur halbe Bewegung: Diese Übung erzeugt stärkeren Muskelkater als alles andere im Plan.',
+        note: 'Der direkte Gegenspieler zum Liegestütz — steht deshalb vor dem Drücken.',
       },
-      { exerciseKey: 'sl_hip_thrust', sets: 3, shortSets: 0, restSec: 60, note: 'Vorgabe gilt je Bein' },
+      { exerciseKey: 'pike_pushup', sets: 3, shortSets: 2, restSec: 75 },
+      { exerciseKey: 'lunge_walk', sets: 3, shortSets: 2, restSec: 90, note: 'Vorgabe gilt je Bein' },
       {
         exerciseKey: 'sl_rdl',
         sets: 3,
         shortSets: 2,
         restSec: 45,
         note: 'Vorgabe gilt je Bein, langsam und kontrolliert',
+      },
+      {
+        exerciseKey: 'copenhagen',
+        sets: 3,
+        shortSets: 0,
+        restSec: 45,
+        note: 'Sekunden je Seite',
+        altPatterns: ['abduction'],
       },
       {
         exerciseKey: 'side_plank',
@@ -131,8 +158,9 @@ export const WORKOUTS: WorkoutTemplate[] = [
  * ist, dass es eine bewusste Auswahl ist und nicht einfach abgebrochen wurde.
  */
 export const SHORT_NOTE =
-  'Kurzform: Es bleiben die Übungen mit dem größten Ertrag pro Minute. Das Aufwärmen wird ' +
-  'nicht gekürzt — vor Sprüngen ist das der Teil, an dem man nicht spart.'
+  'Kurzform: Sprung, Zug, Druck und beide Beinmuster bleiben — also alles, was die Einheit ' +
+  'vollständig macht. Vorsorge- und Rumpfarbeit entfällt; die lässt sich am ehesten nebenbei ' +
+  'nachholen. Das Aufwärmen wird nicht gekürzt — vor Sprüngen ist das der Teil, an dem man nicht spart.'
 
 export const WORKOUT_BY_KEY: Record<string, WorkoutTemplate> = Object.fromEntries(
   WORKOUTS.map((w) => [w.key, w]),

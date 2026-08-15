@@ -70,15 +70,30 @@ Spielleitungs-Fokuspunkte. Optional Körpergewicht.
 Bei 1–2 Einheiten pro Woche ist Ganzkörper deutlich sinnvoller als ein Split: Selbst wenn
 eine Woche nur ein Training zustande kommt, wurde alles belastet.
 
-| Workout A — Drücken & Beine    | Workout B — Ziehen & Rückseite    |
-| ------------------------------ | --------------------------------- |
-| **Strecksprünge** (Sprungkraft) | **Seitliche Einbeinsprünge**      |
-| Liegestütze                    | Klimmzüge                         |
-| Bulgarian Split Squat          | Australian Rows (Tischrudern)     |
-| Pike Liegestütze               | Nordic Curls                      |
-| Wadenheben einbeinig           | Einbeinige Hüftbrücke             |
-| Copenhagen Plank               | Einbeiniges Kreuzheben            |
-| Dead Bug                       | Seitstütz                         |
+| Muster | Workout A | Workout B |
+| --- | --- | --- |
+| Sprung | Strecksprünge | Seitliche Einbeinsprünge |
+| **Ziehen** | **Klimmzüge** | **Australian Rows** |
+| **Drücken** | **Liegestütze** | **Pike Liegestütze** |
+| Knie | Bulgarian Split Squat | Ausfallschritte |
+| Hüfte | Nordic Curls | Einbeiniges Kreuzheben |
+| Vorsorge | Wadenheben einbeinig | Copenhagen Plank |
+| Rumpf | Dead Bug | Seitstütz |
+
+**Warum kein Split.** Jede Einheit enthält einen Druck, einen Zug sowie eine knie- und
+eine hüftdominante Beinübung. Physiologisch wäre ein Split gleichwertig: Sobald das
+Wochenvolumen gleich bleibt, macht es für Kraft und Muskelaufbau keinen belegbaren
+Unterschied, ob eine Übung einmal mit vier Sätzen oder zweimal mit zwei trainiert wird
+(Schoenfeld et al., J Sports Sci 2019).
+
+Der Grund ist organisatorisch: Bei ein bis zwei Einheiten pro Woche fällt regelmäßig eine
+aus. Mit einem Split hieße das, in dieser Woche gar nicht gezogen oder gar nicht gedrückt zu
+haben. Vollständige Einheiten machen den Plan gegen Ausfälle robust. Dagegen spricht auch
+nichts: Druck und Zug sind Gegenspieler und ermüden sich gegenseitig kaum — wer Zeit sparen
+will, führt Klimmzüge und Liegestütze im Wechsel mit kürzerer Pause aus.
+
+**Reihenfolge:** Sprünge zuerst (brauchen ein ausgeruhtes Nervensystem, kosten kaum Kraft),
+dann die Zugbewegung als limitierende Übung, dann Drücken, Beine, Vorsorge, Rumpf.
 
 Die Sprünge stehen bewusst ganz vorne: Explosivkraft braucht ein ausgeruhtes Nervensystem,
 nach vier Sätzen Klimmzügen ist der Reiz nur noch halb so viel wert.
