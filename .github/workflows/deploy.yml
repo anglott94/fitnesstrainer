@@ -23,9 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Gleiche Hauptversion wie lokal getestet, damit der Build im CI nicht
+      # an einer Version scheitert, die hier nie gelaufen ist.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - run: npm ci

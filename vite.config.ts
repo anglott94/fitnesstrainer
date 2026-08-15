@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: 'Schiri-Trainer',
         short_name: 'Schiri-Trainer',
-        description: 'Lauf- und Krafttraining fuer Schiedsrichter - offline, lokal, kostenlos',
+        description: 'Lauf- und Krafttraining für Schiedsrichter — offline, lokal, kostenlos',
         lang: 'de',
         theme_color: '#0b1220',
         background_color: '#0b1220',
