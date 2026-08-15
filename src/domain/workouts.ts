@@ -27,6 +27,13 @@ import { exercisesForPattern, getExercise } from './exercises'
  * 2. Zugbewegung — die limitierende Übung, deshalb vor dem Drücken.
  * 3. Druckbewegung, dann Beine, dann Vorsorge und Rumpf.
  *
+ * Workout A enthält zusätzlich zwei Sätze Rudern direkt hinter den Liegestützen.
+ * Grund: Der Klimmzug ist der Gegenspieler zum Überkopfdrücken, nicht zum Liegestütz.
+ * Die Muskeln, die die Schulterblätter zusammenziehen (Rautenmuskeln, mittlerer
+ * Trapez), arbeiten beim Klimmzug nur wenig und beim waagerechten Ziehen stark.
+ * Ohne diese zwei Sätze hätte eine Woche, in der nur Workout A zustande kommt,
+ * Drücken ohne jeden waagerechten Zug.
+ *
  * ── Kurzform ───────────────────────────────────────────────────────────────
  *
  * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Erhalten
@@ -37,9 +44,9 @@ export const WORKOUTS: WorkoutTemplate[] = [
   {
     key: 'A',
     name: 'Workout A — Klimmzüge & Liegestütze',
-    focus: 'Sprung, Zug senkrecht, Druck waagerecht, Knie, Hamstrings, Wade, Rumpf',
-    approxMinutes: 38,
-    shortApproxMinutes: 25,
+    focus: 'Sprung, Zug senkrecht und waagerecht, Druck, Knie, Hamstrings, Wade, Rumpf',
+    approxMinutes: 42,
+    shortApproxMinutes: 30,
     warmup: [
       '20× Armkreisen vorwärts und rückwärts',
       '10× Schulterblätter im Hängen nach unten ziehen und wieder lösen',
@@ -62,6 +69,13 @@ export const WORKOUTS: WorkoutTemplate[] = [
         note: 'Steht bewusst vor den Liegestützen: die limitierende Übung gehört an die frischeste Stelle.',
       },
       { exerciseKey: 'pushup', sets: 4, shortSets: 3, restSec: 90 },
+      {
+        exerciseKey: 'row_inverted',
+        sets: 2,
+        shortSets: 2,
+        restSec: 90,
+        note: 'Der direkte Gegenspieler zum Liegestütz: Er zieht die Schulterblätter wieder zusammen, was der Klimmzug nur wenig tut. Bleibt auch in der Kurzform drin — solange gedrückt wird, wird auch waagerecht gezogen.',
+      },
       { exerciseKey: 'split_squat', sets: 3, shortSets: 2, restSec: 90, note: 'Vorgabe gilt je Bein' },
       {
         exerciseKey: 'nordic_curl',
@@ -159,8 +173,9 @@ export const WORKOUTS: WorkoutTemplate[] = [
  */
 export const SHORT_NOTE =
   'Kurzform: Sprung, Zug, Druck und beide Beinmuster bleiben — also alles, was die Einheit ' +
-  'vollständig macht. Vorsorge- und Rumpfarbeit entfällt; die lässt sich am ehesten nebenbei ' +
-  'nachholen. Das Aufwärmen wird nicht gekürzt — vor Sprüngen ist das der Teil, an dem man nicht spart.'
+  'vollständig macht. Wadenheben und Rumpfarbeit entfallen; die lassen sich am ehesten nebenbei ' +
+  'nachholen. Das Rudern bleibt bewusst drin, solange Liegestütze auf dem Plan stehen. ' +
+  'Das Aufwärmen wird ebenfalls nicht gekürzt — vor Sprüngen ist das der Teil, an dem man nicht spart.'
 
 export const WORKOUT_BY_KEY: Record<string, WorkoutTemplate> = Object.fromEntries(
   WORKOUTS.map((w) => [w.key, w]),

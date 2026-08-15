@@ -73,12 +73,22 @@ eine Woche nur ein Training zustande kommt, wurde alles belastet.
 | Muster | Workout A | Workout B |
 | --- | --- | --- |
 | Sprung | Strecksprünge | Seitliche Einbeinsprünge |
-| **Ziehen** | **Klimmzüge** | **Australian Rows** |
-| **Drücken** | **Liegestütze** | **Pike Liegestütze** |
+| **Ziehen senkrecht** | **Klimmzüge** (4 Sätze) | — |
+| **Drücken** | **Liegestütze** (4) | Pike Liegestütze (3) |
+| **Ziehen waagerecht** | **Australian Rows** (2) | **Australian Rows** (3) |
 | Knie | Bulgarian Split Squat | Ausfallschritte |
 | Hüfte | Nordic Curls | Einbeiniges Kreuzheben |
 | Vorsorge | Wadenheben einbeinig | Copenhagen Plank |
 | Rumpf | Dead Bug | Seitstütz |
+
+**Warum in Workout A zusätzlich Rudern steht.** Der Klimmzug ist nicht der Gegenspieler
+zum Liegestütz, sondern zum Überkopfdrücken — er zieht das Schulterblatt nach unten, nicht
+zusammen. Die Muskeln, die es zusammenziehen (Rautenmuskeln, mittlerer Trapez, hintere
+Schulter), arbeiten beim waagerechten Ziehen stark und beim Klimmzug wenig. Ohne diese zwei
+Sätze hätte eine Woche, in der nur Workout A zustande kommt, Drücken ohne jeden waagerechten
+Zug. Sie bleiben deshalb auch in der Kurzform stehen.
+
+Wochenbilanz: 7 Druck- zu 9 Zugsätzen. Mehr Ziehen als Drücken ist unproblematisch.
 
 **Warum kein Split.** Jede Einheit enthält einen Druck, einen Zug sowie eine knie- und
 eine hüftdominante Beinübung. Physiologisch wäre ein Split gleichwertig: Sobald das
