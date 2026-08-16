@@ -1,6 +1,7 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { ErrorToastProvider } from './components/ErrorToast'
 import { Nav } from './components/Nav'
+import { UpdatePrompt } from './components/UpdatePrompt'
 import { useRouteAnnounce } from './hooks/useRouteAnnounce'
 import Today from './pages/Today'
 import StrengthSessionPage from './pages/StrengthSessionPage'
@@ -44,6 +45,7 @@ export default function App() {
           </Routes>
         </main>
         {!hideNav && <Nav />}
+      <UpdatePrompt />
       </div>
     </ErrorToastProvider>
   )

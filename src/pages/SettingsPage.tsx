@@ -214,6 +214,9 @@ export default function SettingsPage() {
         </button>
       </div>
 
+      <h2 className="section-title">Version</h2>
+      <VersionCard />
+
       <h2 className="section-title">Über die App</h2>
       <div className="card">
         <p className="small muted" style={{ marginTop: 0 }}>
@@ -227,6 +230,61 @@ export default function SettingsPage() {
       </div>
 
       <Toast message={toast} onDismiss={() => setToast(null)} />
+    </div>
+  )
+}
+
+/**
+ * Zeigt an, welcher Stand tatsächlich läuft, und erlaubt eine erzwungene
+ * Aktualisierung.
+ *
+ * Eine installierte PWA liefert zwischengespeicherte Dateien aus. Ohne sichtbares
+ * Datum lässt sich nicht unterscheiden, ob ein Fehler noch besteht oder ob nur
+ * eine alte Fassung läuft — beim Melden von Fehlern ist das der entscheidende
+ * Unterschied.
+ */
+function VersionCard() {
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
+
+  const built = new Date(__BUILD_TIME__)
+  const stamp = `${String(built.getDate()).padStart(2, '0')}.${String(built.getMonth() + 1).padStart(2, '0')}.${built.getFullYear()}, ${String(built.getHours()).padStart(2, '0')}:${String(built.getMinutes()).padStart(2, '0')}`
+
+  async function forceUpdate() {
+    setBusy(true)
+    setStatus('Suche …')
+    try {
+      const registration = await navigator.serviceWorker?.getRegistration()
+      await registration?.update()
+      // Zwischenspeicher leeren, sonst liefert der alte Service Worker beim
+      // Neuladen erneut die alten Dateien aus.
+      if (typeof caches !== 'undefined') {
+        const names = await caches.keys()
+        await Promise.all(names.map((n) => caches.delete(n)))
+      }
+      setStatus('Wird neu geladen …')
+      window.location.reload()
+    } catch {
+      setStatus('Hat nicht geklappt — App bitte schließen und neu öffnen.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="card">
+      <div className="row-between">
+        <div>
+          <strong className="small">Installierter Stand</strong>
+          <div className="tiny dim num">{stamp}</div>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={() => void forceUpdate()} disabled={busy}>
+          {status ?? 'Nach Update suchen'}
+        </button>
+      </div>
+      <p className="tiny dim" style={{ margin: '10px 0 0' }}>
+        Meldest du einen Fehler, nenn dieses Datum mit. Weicht es vom aktuellen Stand ab, läuft
+        hier noch eine ältere Fassung aus dem Zwischenspeicher — dann hilft dieser Knopf.
+      </p>
     </div>
   )
 }

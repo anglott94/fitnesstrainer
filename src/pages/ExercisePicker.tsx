@@ -137,10 +137,17 @@ export default function ExercisePicker() {
             </span>
           </div>
 
+          {/* Ohne diese Zeile war nicht erkennbar, dass sich die Übung im Plan
+              überhaupt wechseln lässt — der Auswahlpunkt allein ist zu leise. */}
           <p className="tiny dim" style={{ margin: '0 0 9px 13px' }}>
             {status.pattern.covers}
-            {status.all.length > 1 ? ' · Punkt antippen, um zu tauschen' : ''}
           </p>
+          {status.all.length > 1 && (
+            <p className="tiny" style={{ margin: '0 0 9px 13px', color: 'var(--accent)' }}>
+              Im Plan: {status.active.find((e) => scheduled.has(e.key))?.name ?? '—'} · zum
+              Tauschen den Punkt der gewünschten Übung antippen
+            </p>
+          )}
 
           <div className="list">
             {status.all.map((ex) => (

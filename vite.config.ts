@@ -8,10 +8,19 @@ import { VitePWA } from 'vite-plugin-pwa'
 // Reloads ohne Server-Rewrites funktionieren.
 export default defineConfig({
   base: './',
+  // Zeitstempel des Builds, damit in den Einstellungen ablesbar ist, welcher
+  // Stand tatsächlich läuft. Ohne das lässt sich „alte Version im Cache" nicht
+  // von „Fehler nicht behoben" unterscheiden.
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Registrierung übernimmt UpdatePrompt über den React-Hook — sonst liefe
+      // die eingebettete registerSW.js parallel und meldete nie einen Neustand.
+      injectRegister: null,
       includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Schiri-Trainer',
