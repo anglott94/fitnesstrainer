@@ -199,7 +199,9 @@ export const EXERCISES: Exercise[] = [
     assistLadder: 'band',
     assistStepUpAt: 10,
     assistResetTarget: 5,
-    startTarget: 8,
+    // Niedriger als beim Untergriff: Im Obergriff hilft der Bizeps deutlich
+    // weniger, die meisten kommen hier auf spürbar weniger Wiederholungen.
+    startTarget: 5,
     increment: 1,
     maxTarget: 12,
   },
