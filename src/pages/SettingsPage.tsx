@@ -102,6 +102,13 @@ export default function SettingsPage() {
         {matches.length === 1 ? 'Spiel' : 'Spiele'} gespeichert.
       </p>
 
+      {/* Steht bewusst ganz oben: Wenn etwas nicht funktioniert, ist die erste
+          Frage, welcher Stand ueberhaupt laeuft. Ganz unten sucht das niemand. */}
+      <h2 className="section-title" style={{ marginTop: 0 }}>
+        Version
+      </h2>
+      <VersionCard />
+
       <h2 className="section-title">Während des Trainings</h2>
       <div className="card">
         <Toggle
@@ -213,9 +220,6 @@ export default function SettingsPage() {
           Alle Daten löschen
         </button>
       </div>
-
-      <h2 className="section-title">Version</h2>
-      <VersionCard />
 
       <h2 className="section-title">Über die App</h2>
       <div className="card">
