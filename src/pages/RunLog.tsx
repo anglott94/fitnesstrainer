@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { RUNS, getRun } from '../domain/runs'
 import { logRun } from '../db/repo'
 import { formatPace, todayISO } from '../lib/date'
+import { useWriteGuard } from '../components/ErrorToast'
 
 export default function RunLog() {
   const { key } = useParams<{ key: string }>()
@@ -16,6 +17,7 @@ export default function RunLog() {
   const [rpe, setRpe] = useState<number | undefined>(undefined)
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const guard = useWriteGuard()
 
   const run = key && RUNS.some((r) => r.key === key) ? getRun(key) : null
   if (!run) {
@@ -33,18 +35,30 @@ export default function RunLog() {
   const durationSec = toSeconds(minutes, seconds)
   const pace = distanceKm && durationSec ? formatPace(distanceKm, durationSec) : null
 
+  // Ohne Distanz oder Dauer ist der Eintrag leer, würde die Woche aber trotzdem
+  // als erledigt zählen. Puls und Notiz allein reichen dafür nicht.
+  const canSave = distanceKm !== undefined || durationSec !== undefined
+
   async function save() {
-    if (!run) return
+    if (!run || !canSave) return
     setSaving(true)
-    await logRun({
-      planKey: run.key,
-      date,
-      distanceKm,
-      durationSec,
-      avgHr: parseNumber(hr),
-      rpe,
-      notes: notes.trim() || undefined,
-    })
+    const ok = await guard(() =>
+      logRun({
+        planKey: run.key,
+        date,
+        distanceKm,
+        durationSec,
+        avgHr: parseNumber(hr),
+        rpe,
+        notes: notes.trim() || undefined,
+      }),
+    )
+    // Nur weg von hier, wenn es wirklich gespeichert ist — sonst wären die
+    // Eingaben mit dem Seitenwechsel verloren.
+    if (!ok) {
+      setSaving(false)
+      return
+    }
     navigate('/')
   }
 
@@ -167,10 +181,15 @@ export default function RunLog() {
         className="btn btn-run btn-block btn-lg"
         style={{ marginTop: 20 }}
         onClick={() => void save()}
-        disabled={saving}
+        disabled={saving || !canSave}
       >
         Speichern
       </button>
+      {!canSave && (
+        <p className="tiny dim" style={{ margin: '10px 2px 0', textAlign: 'center' }}>
+          Trag mindestens die Distanz oder die Dauer ein.
+        </p>
+      )}
     </div>
   )
 }
@@ -183,7 +202,9 @@ function parseNumber(raw: string): number | undefined {
 
 function toSeconds(min: string, sec: string): number | undefined {
   const m = parseNumber(min) ?? 0
-  const s = parseNumber(sec) ?? 0
+  // Das Sekundenfeld meint Sekunden, nicht „noch mehr Minuten". `max="59"` im
+  // Markup hält nur die Pfeiltasten auf; getippt wird trotzdem alles.
+  const s = Math.min(59, parseNumber(sec) ?? 0)
   const total = Math.round(m * 60 + s)
   return total > 0 ? total : undefined
 }

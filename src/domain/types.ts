@@ -242,4 +242,13 @@ export interface Settings {
   /** Distanz des letzten Tests in Kilometern — nur zur Einordnung. */
   testDistanceKm: number
   testDate: string
+
+  // --- Sicherung ---
+  /**
+   * Wann zuletzt exportiert wurde, und wie viele Einträge es zu dem Zeitpunkt gab.
+   * Die Daten liegen nur in der IndexedDB dieses Browsers — ohne Erinnerung ist der
+   * Export ein Knopf, den niemand drückt, bis es zu spät ist.
+   */
+  lastBackupAt?: string
+  lastBackupEntryCount?: number
 }

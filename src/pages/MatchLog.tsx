@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { logMatch } from '../db/repo'
 import { todayISO } from '../lib/date'
+import { useWriteGuard } from '../components/ErrorToast'
 
 /**
  * Nachbereitung eines geleiteten Spiels — bewusst auf die zwei Fokuspunkte aus den
@@ -45,23 +46,30 @@ export default function MatchLog() {
   const [keyScene, setKeyScene] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const guard = useWriteGuard()
 
   const canSave = positioning !== null && discipline !== null
 
   async function save() {
     if (!canSave) return
     setSaving(true)
-    await logMatch({
-      date,
-      competition: competition.trim() || 'Spiel',
-      positioning: positioning!,
-      discipline: discipline!,
-      distanceKm: parseNumber(distance),
-      avgHr: parseNumber(avgHr),
-      maxHr: parseNumber(maxHr),
-      keyScene: keyScene.trim() || undefined,
-      notes: notes.trim() || undefined,
-    })
+    const ok = await guard(() =>
+      logMatch({
+        date,
+        competition: competition.trim() || 'Spiel',
+        positioning: positioning!,
+        discipline: discipline!,
+        distanceKm: parseNumber(distance),
+        avgHr: parseNumber(avgHr),
+        maxHr: parseNumber(maxHr),
+        keyScene: keyScene.trim() || undefined,
+        notes: notes.trim() || undefined,
+      }),
+    )
+    if (!ok) {
+      setSaving(false)
+      return
+    }
     navigate('/verlauf')
   }
 

@@ -11,7 +11,7 @@ const ITEMS = [
 
 export function Nav() {
   return (
-    <nav className="nav">
+    <nav className="nav" aria-label="Hauptbereiche">
       {ITEMS.map(({ to, label, Icon, end }) => (
         <NavLink key={to} to={to} end={end} className="nav-item">
           <Icon />

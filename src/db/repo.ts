@@ -16,16 +16,27 @@ export async function getActiveStrengthSession(): Promise<StrengthSession | unde
 }
 
 /**
+ * Ergebnis von `startStrengthSession`. Der Fall „es lief schon etwas" wird bewusst
+ * nach außen gereicht, statt still die alte Einheit zurückzugeben: Sonst landet man
+ * beim Tippen auf Workout B kommentarlos in Workout A, und eine vergessene Einheit
+ * von vorletzter Woche blockiert jeden weiteren Start, ohne dass man sie sieht.
+ */
+export type StartResult =
+  | { kind: 'started'; id: number }
+  | { kind: 'resumed'; id: number; running: StrengthSession }
+
+/**
  * Startet eine Einheit. Läuft bereits eine, wird diese zurückgegeben statt eine
  * zweite anzulegen — sonst entstünden beim doppelten Tippen zwei halbe Sessions.
+ * Der Aufrufer entscheidet anhand von `kind`, ob er nachfragt.
  */
 export async function startStrengthSession(
   templateKey: string,
   isDeload: boolean,
   isShort = false,
-): Promise<number> {
+): Promise<StartResult> {
   const running = await getActiveStrengthSession()
-  if (running?.id) return running.id
+  if (running?.id) return { kind: 'resumed', id: running.id, running }
 
   const template = getWorkout(templateKey)
   const [states, settings] = await Promise.all([
@@ -49,7 +60,23 @@ export async function startStrengthSession(
       settings?.exercisePreferences ?? {},
     ),
   }
-  return (await db.strengthSessions.add(session)) as number
+  const id = (await db.strengthSessions.add(session)) as number
+  return { kind: 'started', id }
+}
+
+/**
+ * Verwirft die laufende Einheit und startet die gewünschte neu. Ein Schritt, damit
+ * zwischen Löschen und Anlegen keine zweite aktive Einheit entstehen kann.
+ */
+export async function replaceActiveStrengthSession(
+  templateKey: string,
+  isDeload: boolean,
+  isShort = false,
+): Promise<number> {
+  const running = await getActiveStrengthSession()
+  if (running?.id) await db.strengthSessions.delete(running.id)
+  const result = await startStrengthSession(templateKey, isDeload, isShort)
+  return result.id
 }
 
 export async function patchSet(

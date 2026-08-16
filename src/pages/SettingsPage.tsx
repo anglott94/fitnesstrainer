@@ -5,9 +5,11 @@ import {
   requestPersistentStorage,
   type StorageStatus,
 } from '../lib/storage'
-import { exportBackup, importBackup, updateSettings, wipeAllData } from '../db/db'
+import { importBackup, markBackupDone, updateSettings, wipeAllData } from '../db/db'
 import { db } from '../db/db'
+import { downloadBackup } from '../lib/backupFile'
 import {
+  useBackupStatus,
   useDoneStrengthSessions,
   useMatches,
   useRunSessions,
@@ -17,7 +19,7 @@ import {
 import { Toast } from '../components/Toast'
 import { EXERCISES } from '../domain/exercises'
 import { formatPaceRange, formatPaceSec, zoneByKey } from '../domain/zones'
-import { todayISO } from '../lib/date'
+import { formatRelative, todayISO } from '../lib/date'
 
 export default function SettingsPage() {
   const settings = useSettings()
@@ -26,34 +28,38 @@ export default function SettingsPage() {
   const matches = useMatches()
   const fileInput = useRef<HTMLInputElement>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const { newSinceBackup } = useBackupStatus(settings)
 
   const totalSessions = strength.length + runs.length
 
   async function handleExport() {
-    const backup = await exportBackup()
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `schiri-trainer-${todayISO()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-    setToast('Sicherung heruntergeladen')
+    try {
+      const count = await downloadBackup()
+      await markBackupDone(count)
+      setToast('Sicherung heruntergeladen')
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Sicherung fehlgeschlagen')
+    }
   }
 
   async function handleImport(file: File) {
     if (
       !window.confirm(
-        'Beim Einspielen wird der aktuelle Bestand vollständig ersetzt. Fortfahren?',
+        'Beim Einspielen wird der aktuelle Bestand vollständig ersetzt.\n\n' +
+          'Vorher wird automatisch eine Sicherung des jetzigen Standes heruntergeladen. Fortfahren?',
       )
     ) {
       return
     }
     try {
+      // Erst sichern, dann ersetzen. Wer die falsche Datei erwischt, hat damit
+      // noch einen Weg zurück.
+      await downloadBackup('vor-import')
       const text = await file.text()
       const result = await importBackup(JSON.parse(text))
+      const skipped = result.skipped > 0 ? `, ${result.skipped} unlesbar übersprungen` : ''
       setToast(
-        `Eingespielt: ${result.strengthSessions} Krafteinheiten, ${result.runSessions} Läufe, ${result.matches} Spiele`,
+        `Eingespielt: ${result.strengthSessions} Krafteinheiten, ${result.runSessions} Läufe, ${result.matches} Spiele${skipped}`,
       )
     } catch (error) {
       setToast(error instanceof Error ? error.message : 'Datei konnte nicht gelesen werden')
@@ -62,15 +68,30 @@ export default function SettingsPage() {
 
   async function handleReset() {
     if (!window.confirm('Wirklich alle Daten löschen? Das lässt sich nicht rückgängig machen.')) return
-    if (!window.confirm('Sicher? Lade vorher am besten eine Sicherung herunter.')) return
-    await wipeAllData()
-    setToast('Alle Daten gelöscht')
+    if (
+      !window.confirm(
+        'Sicher? Vorher wird automatisch eine Sicherung heruntergeladen — nur darüber kommst du danach noch an die Daten.',
+      )
+    ) {
+      return
+    }
+    try {
+      await downloadBackup('vor-loeschen')
+      await wipeAllData()
+      setToast('Alle Daten gelöscht')
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Löschen fehlgeschlagen')
+    }
   }
 
   async function resetProgression() {
     if (!window.confirm('Alle Übungsvorgaben auf den Startwert zurücksetzen?')) return
-    await db.exerciseStates.clear()
-    setToast('Vorgaben zurückgesetzt')
+    try {
+      await db.exerciseStates.clear()
+      setToast('Vorgaben zurückgesetzt')
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Zurücksetzen fehlgeschlagen')
+    }
   }
 
   return (
@@ -158,6 +179,11 @@ export default function SettingsPage() {
         <button className="btn btn-block" onClick={() => void handleExport()}>
           Sicherung herunterladen
         </button>
+        <p className="tiny dim" style={{ margin: '-4px 0 4px', textAlign: 'center' }}>
+          {settings.lastBackupAt
+            ? `Zuletzt gesichert ${formatRelative(settings.lastBackupAt)} · seitdem ${newSinceBackup} neue ${newSinceBackup === 1 ? 'Eintrag' : 'Einträge'}`
+            : 'Noch nie gesichert.'}
+        </p>
         <button className="btn btn-ghost btn-block" onClick={() => fileInput.current?.click()}>
           Sicherung einspielen
         </button>
@@ -323,13 +349,19 @@ function PerformanceSection() {
   const totalSec = (Number(testMin) || 0) * 60 + (Number(testSec) || 0)
   const paceSec = km > 0 && totalSec > 0 ? Math.round(totalSec / km) : 0
 
-  const valid = Number(hrMax) > Number(hrRest) && Number(hrRest) > 0 && paceSec > 0
+  // Aus diesen Werten leiten sich sämtliche Puls- und Tempovorgaben ab. Eine HFmax
+  // von 900 wäre bisher durchgegangen und hätte jede Zone still verschoben.
+  const hrMaxNum = Number(hrMax)
+  const hrRestNum = Number(hrRest)
+  const hrMaxPlausible = hrMaxNum >= 120 && hrMaxNum <= 230
+  const hrRestPlausible = hrRestNum >= 30 && hrRestNum <= 100
+  const valid = hrMaxPlausible && hrRestPlausible && hrMaxNum > hrRestNum && paceSec > 0
 
   async function save() {
     if (!valid) return
     await updateSettings({
-      hrMax: Number(hrMax),
-      hrRest: Number(hrRest),
+      hrMax: hrMaxNum,
+      hrRest: hrRestNum,
       testDistanceKm: km,
       testPaceSecPerKm: paceSec,
       testDate: testDate || todayISO(),
@@ -449,6 +481,18 @@ function PerformanceSection() {
         >
           {saved ? 'Gespeichert' : 'Leistungsdaten übernehmen'}
         </button>
+
+        {!valid && (
+          <p className="tiny dim" style={{ margin: '8px 0 0', textAlign: 'center' }}>
+            {!hrMaxPlausible
+              ? 'HFmax wird zwischen 120 und 230 erwartet.'
+              : !hrRestPlausible
+                ? 'Ruhepuls wird zwischen 30 und 100 erwartet.'
+                : hrMaxNum <= hrRestNum
+                  ? 'HFmax muss über dem Ruhepuls liegen.'
+                  : 'Trag noch Distanz und Zeit deines Tests ein.'}
+          </p>
+        )}
 
         <div className="divider" />
 

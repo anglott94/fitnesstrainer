@@ -18,8 +18,10 @@ export default defineConfig({
         short_name: 'Schiri-Trainer',
         description: 'Lauf- und Krafttraining für Schiedsrichter — offline, lokal, kostenlos',
         lang: 'de',
-        theme_color: '#0b1220',
-        background_color: '#0b1220',
+        // Muss zu --bg in styles.css passen, sonst zieht sich in der installierten
+        // App eine sichtbare Kante zwischen Statusleiste und Seite.
+        theme_color: '#0a1018',
+        background_color: '#0a1018',
         display: 'standalone',
         orientation: 'portrait',
         start_url: './',

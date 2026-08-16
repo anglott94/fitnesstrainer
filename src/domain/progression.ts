@@ -89,7 +89,10 @@ export function evaluateSession(
 
   for (const key of exerciseKeys) {
     const ex = getExercise(key)
-    const logged = session.sets.filter((s) => s.exerciseKey === key && s.actual !== null)
+    // Nur abgehakte Sätze zählen. `actual` allein reicht nicht: Der Wert wird schon
+    // beim Antippen von −/+ geschrieben, also auch für Sätze, die am Ende gar nicht
+    // gemacht wurden. Genau das sagt der Abschlussbildschirm auch zu.
+    const logged = session.sets.filter((s) => s.exerciseKey === key && s.done && s.actual !== null)
     const prev = byKey.get(key)
     const currentTarget = prev?.target ?? ex.startTarget
     const bestSoFar = prev?.bestSet ?? 0
@@ -204,9 +207,14 @@ function unitSuffix(ex: Exercise): string {
   return ex.unit === 'seconds' ? ' Sekunden' : ' Wiederholungen'
 }
 
-/** Gesamtvolumen einer Einheit: Summe aller Wiederholungen (Sekunden zählen nicht mit). */
+/**
+ * Gesamtvolumen einer Einheit: Summe aller Wiederholungen (Sekunden zählen nicht mit).
+ * Zählt wie die Auswertung nur abgehakte Sätze — sonst wiche die Summe in der
+ * Verlaufsliste von der aufgeklappten Detailansicht derselben Einheit ab.
+ */
 export function sessionVolume(session: StrengthSession): number {
   return session.sets.reduce((sum, s) => {
+    if (!s.done) return sum
     const ex = getExercise(s.exerciseKey)
     if (ex.unit !== 'reps') return sum
     const reps = s.actual ?? 0

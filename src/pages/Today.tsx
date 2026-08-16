@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   useActiveSession,
+  useBackupStatus,
   useSettings,
   useWeekStatus,
   useExerciseStates,
@@ -10,12 +11,17 @@ import {
 import { formatHrRange, formatPaceRange, zoneByKey, type Zones } from '../domain/zones'
 import { getWorkout, resolveBlocks } from '../domain/workouts'
 import { getRun } from '../domain/runs'
-import { startStrengthSession } from '../db/repo'
+import {
+  deleteStrengthSession,
+  replaceActiveStrengthSession,
+  startStrengthSession,
+} from '../db/repo'
+import type { StrengthSession } from '../domain/types'
 import { hasOwnPerformanceData } from '../db/db'
 import { adjustSets, adjustTarget, DELOAD_EXPLANATION } from '../domain/plan'
 import { targetFor } from '../domain/progression'
 import { getExercise } from '../domain/exercises'
-import { formatDateLong, todayISO } from '../lib/date'
+import { formatDateLong, formatRelative, todayISO } from '../lib/date'
 import { IconRun, IconStrength, IconFlame } from '../components/icons'
 import { unlockAudio } from '../lib/feedback'
 
@@ -25,6 +31,7 @@ export default function Today() {
   const zones = useZones(settings)
   const active = useActiveSession()
   const states = useExerciseStates()
+  const backup = useBackupStatus(settings)
   const { plan, strengthDone, runsDone, strengthOpen, runsOpen } = useWeekStatus(settings)
 
   const nextWorkoutKey = strengthOpen[0]
@@ -33,8 +40,35 @@ export default function Today() {
 
   async function beginStrength(key: string, isShort = false) {
     unlockAudio() // Audio-Freigabe an diese Nutzeraktion koppeln
-    const id = await startStrengthSession(key, plan.isDeload, isShort)
-    navigate(`/kraft/${id}`)
+    const result = await startStrengthSession(key, plan.isDeload, isShort)
+
+    // Es lief noch etwas. Ist es genau das Gewünschte von heute, geht es direkt
+    // weiter. Sonst muss die Entscheidung beim Nutzer liegen — sonst landet man
+    // beim Tippen auf Workout B still in Workout A, oder eine vergessene Einheit
+    // von letzter Woche verschluckt jeden neuen Start.
+    if (result.kind === 'resumed') {
+      const running = result.running
+      const isWanted = running.templateKey === key && running.date === todayISO()
+      if (!isWanted) {
+        const done = running.sets.filter((s) => s.done).length
+        const weiter = window.confirm(
+          `Es läuft noch „${running.name}" von ${formatRelative(running.date)} ` +
+            `(${done} von ${running.sets.length} Sätzen).\n\nDort weitermachen?`,
+        )
+        if (!weiter) {
+          const verwerfen = window.confirm(
+            `„${running.name}" verwerfen und „${getWorkout(key).name}" neu starten? ` +
+              `Die eingetragenen Sätze gehen verloren.`,
+          )
+          if (!verwerfen) return
+          const id = await replaceActiveStrengthSession(key, plan.isDeload, isShort)
+          navigate(`/kraft/${id}`)
+          return
+        }
+      }
+    }
+
+    navigate(`/kraft/${result.id}`)
   }
 
   return (
@@ -49,22 +83,7 @@ export default function Today() {
         </span>
       </div>
 
-      {active && (
-        <Link to={`/kraft/${active.id}`} className="card card-accent card-button" style={{ marginBottom: 12 }}>
-          <div className="row-between">
-            <div>
-              <div className="badge badge-accent" style={{ marginBottom: 8 }}>
-                Läuft gerade
-              </div>
-              <h3>{active.name}</h3>
-              <p className="small muted" style={{ margin: '4px 0 0' }}>
-                {active.sets.filter((s) => s.done).length} von {active.sets.length} Sätzen erledigt
-              </p>
-            </div>
-            <span className="btn btn-primary btn-sm">Weiter</span>
-          </div>
-        </Link>
-      )}
+      {active && <ActiveSessionCard session={active} />}
 
       {/* Ohne eigene Leistungsdaten rechnet die App mit Platzhaltern — dann sind
           sämtliche Puls- und Tempovorgaben Fantasiewerte. Das muss auffallen. */}
@@ -77,6 +96,25 @@ export default function Today() {
                 Puls- und Tempovorgaben laufen gerade auf Platzhaltern. Trag unter „Mehr" deine
                 HFmax, den Ruhepuls und dein letztes Testergebnis ein — dauert eine Minute und
                 macht aus dem Plan erst deinen.
+              </p>
+            </div>
+            <span className="dim">›</span>
+          </div>
+        </Link>
+      )}
+
+      {/* Die Daten liegen nur in diesem Browser. Wer nie exportiert, verliert bei
+          gelöschten Browserdaten oder Gerätewechsel alles auf einmal. */}
+      {backup.overdue && (
+        <Link to="/einstellungen" className="card card-warn card-button" style={{ marginBottom: 12 }}>
+          <div className="row-between">
+            <div style={{ minWidth: 0 }}>
+              <strong className="small">Zeit für eine Sicherung</strong>
+              <p className="tiny muted" style={{ margin: '4px 0 0' }}>
+                {backup.lastBackupAt
+                  ? `Seit der letzten Sicherung ${formatRelative(backup.lastBackupAt)} sind ${backup.newSinceBackup} Einträge dazugekommen.`
+                  : `Du hast ${backup.newSinceBackup} Einträge und noch nie gesichert.`}{' '}
+                Alles liegt nur in diesem Browser — ein Klick unter „Mehr" legt die Datei ab.
               </p>
             </div>
             <span className="dim">›</span>
@@ -163,13 +201,14 @@ export default function Today() {
                 className="card card-tight card-button"
                 onClick={() => void beginStrength(key)}
               >
-                <div className="row-between">
+                {/* <span> statt <div>: In einem <button> ist nur Fließtext erlaubt. */}
+                <span className="row-between">
                   <span className="row">
                     <IconStrength size={18} className="muted" />
                     <span>{getWorkout(key).name}</span>
                   </span>
                   <span className="list-chevron">›</span>
-                </div>
+                </span>
               </button>
             ))}
             {runsOpen.slice(1).map((key) => (
@@ -197,13 +236,13 @@ export default function Today() {
                 className="card card-tight card-button"
                 onClick={() => void beginStrength(plan.workoutKeys[0])}
               >
-                <div className="row-between">
+                <span className="row-between">
                   <span className="row">
                     <IconStrength size={18} className="muted" />
                     <span>Extra-Krafteinheit</span>
                   </span>
                   <span className="list-chevron">›</span>
-                </div>
+                </span>
               </button>
             )}
             {runsOpen.length === 0 && (
@@ -237,6 +276,54 @@ export default function Today() {
           <span className="list-chevron">›</span>
         </div>
       </Link>
+    </div>
+  )
+}
+
+/**
+ * Die laufende Einheit. Stammt sie nicht von heute, wurde sie vermutlich vergessen —
+ * dann steht das Datum dabei und ein Weg zum Verwerfen, sonst blockiert sie stillschweigend
+ * jeden weiteren Start.
+ */
+function ActiveSessionCard({ session }: { session: StrengthSession }) {
+  const stale = session.date !== todayISO()
+  const done = session.sets.filter((s) => s.done).length
+
+  async function discard() {
+    if (!window.confirm(`„${session.name}" verwerfen? Die eingetragenen Sätze gehen verloren.`)) {
+      return
+    }
+    await deleteStrengthSession(session.id!)
+  }
+
+  return (
+    <div className={`card ${stale ? 'card-warn' : 'card-accent'}`} style={{ marginBottom: 12 }}>
+      <div className="row-between">
+        <div style={{ minWidth: 0 }}>
+          <div className={`badge ${stale ? 'badge-warn' : 'badge-accent'}`} style={{ marginBottom: 8 }}>
+            {stale ? `Angefangen ${formatRelative(session.date)}` : 'Läuft gerade'}
+          </div>
+          <h3>{session.name}</h3>
+          <p className="small muted" style={{ margin: '4px 0 0' }}>
+            {done} von {session.sets.length} Sätzen erledigt
+          </p>
+        </div>
+        <Link to={`/kraft/${session.id}`} className="btn btn-primary btn-sm">
+          Weiter
+        </Link>
+      </div>
+
+      {stale && (
+        <>
+          <p className="tiny muted" style={{ margin: '12px 0 8px' }}>
+            Diese Einheit ist noch offen und blockiert den Start einer neuen. Mach dort weiter oder
+            verwirf sie.
+          </p>
+          <button className="btn btn-ghost btn-sm" onClick={() => void discard()}>
+            Verwerfen
+          </button>
+        </>
+      )}
     </div>
   )
 }

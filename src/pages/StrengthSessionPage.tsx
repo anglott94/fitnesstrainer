@@ -20,6 +20,7 @@ import { useSettings } from '../hooks/useAppData'
 import { useRestTimer } from '../hooks/useRestTimer'
 import { useWakeLock } from '../hooks/useWakeLock'
 import { RestTimerBar } from '../components/RestTimerBar'
+import { useWriteGuard } from '../components/ErrorToast'
 import { IconCheck, IconChevronDown, IconMinus, IconPlus } from '../components/icons'
 import { formatDuration } from '../lib/date'
 import { playSetDone, unlockAudio, vibrate } from '../lib/feedback'
@@ -30,6 +31,9 @@ interface Group {
   restSec: number
   note?: string
 }
+
+/** Länger als vier Stunden dauert keine Einheit — danach lief nur die Uhr weiter. */
+const MAX_PLAUSIBLE_SESSION_SEC = 4 * 3600
 
 export default function StrengthSessionPage() {
   const { id } = useParams<{ id: string }>()
@@ -49,6 +53,7 @@ export default function StrengthSessionPage() {
   const [notes, setNotes] = useState('')
   const [warmupDone, setWarmupDone] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const guard = useWriteGuard()
 
   useWakeLock(settings.keepScreenAwake && phase === 'training')
 
@@ -119,17 +124,26 @@ export default function StrengthSessionPage() {
   const doneCount = session.sets.filter((s) => s.done).length
   const totalCount = session.sets.length
   const progress = totalCount === 0 ? 0 : doneCount / totalCount
+  // Wurde die App mitten im Training geschlossen, läuft die Uhr weiter. Ab einem
+  // gewissen Punkt ist die Zahl keine Trainingsdauer mehr, sondern nur noch Rauschen
+  // („504:12:33") — dann lieber gar nichts anzeigen.
   const elapsed = Math.round((now - session.startedAt) / 1000)
+  const elapsedPlausible = elapsed < MAX_PLAUSIBLE_SESSION_SEC
 
   async function toggleSet(group: Group, set: SetLog) {
     if (!session) return
     if (set.done) {
-      await patchSet(session.id!, set.exerciseKey, set.setIndex, { done: false })
+      await guard(() => patchSet(session.id!, set.exerciseKey, set.setIndex, { done: false }))
       return
     }
     unlockAudio()
     const value = set.actual ?? set.target
-    await patchSet(session.id!, set.exerciseKey, set.setIndex, { done: true, actual: value })
+    // Erst wenn das Schreiben durch ist, gibt es Ton und Vibration — sonst
+    // bestätigt die App einen Satz, der gar nicht in der Datenbank steht.
+    const ok = await guard(() =>
+      patchSet(session.id!, set.exerciseKey, set.setIndex, { done: true, actual: value }),
+    )
+    if (!ok) return
     playSetDone(settings.soundEnabled)
     vibrate(settings.vibrationEnabled, 35)
 
@@ -148,12 +162,17 @@ export default function StrengthSessionPage() {
     const step = ex.unit === 'seconds' ? 5 : 1
     const current = set.actual ?? set.target
     const next = Math.max(0, current + delta * step)
-    await patchSet(session.id!, set.exerciseKey, set.setIndex, { actual: next })
+    await guard(() => patchSet(session.id!, set.exerciseKey, set.setIndex, { actual: next }))
   }
 
   async function handleFinish() {
     if (!session) return
-    const result = await finishStrengthSession(session.id!, { rpe, notes: notes.trim() || undefined })
+    // Scheitert das Auswerten, bleibt die Einheit offen statt scheinbar abgeschlossen.
+    let result: ProgressionChange[] = []
+    const ok = await guard(async () => {
+      result = await finishStrengthSession(session.id!, { rpe, notes: notes.trim() || undefined })
+    })
+    if (!ok) return
     setChanges(result)
     restTimer.stop()
     setPhase('summary')
@@ -162,7 +181,7 @@ export default function StrengthSessionPage() {
   async function handleDiscard() {
     if (!session) return
     if (!window.confirm('Diese Einheit verwerfen? Die eingetragenen Sätze gehen verloren.')) return
-    await deleteStrengthSession(session.id!)
+    if (!(await guard(() => deleteStrengthSession(session.id!)))) return
     navigate('/')
   }
 
@@ -175,7 +194,7 @@ export default function StrengthSessionPage() {
       <FinishForm
         doneCount={doneCount}
         totalCount={totalCount}
-        elapsed={elapsed}
+        elapsed={elapsedPlausible ? elapsed : undefined}
         rpe={rpe}
         notes={notes}
         onRpe={setRpe}
@@ -193,7 +212,8 @@ export default function StrengthSessionPage() {
           <div style={{ minWidth: 0 }}>
             <h2 style={{ fontSize: '1.05rem' }}>{template.name}</h2>
             <div className="tiny dim">
-              {doneCount}/{totalCount} Sätze · {formatDuration(elapsed)}
+              {doneCount}/{totalCount} Sätze
+              {elapsedPlausible ? ` · ${formatDuration(elapsed)}` : ' · seit gestern offen'}
               {session.short ? ' · Kurzform' : ''}
               {session.deload ? ' · Entlastungswoche' : ''}
             </div>
@@ -216,26 +236,35 @@ export default function StrengthSessionPage() {
           </div>
         )}
 
-        <button
-          className="card card-tight card-button"
-          onClick={() => setWarmupDone((v) => !v)}
-          style={{ marginBottom: 12 }}
-          aria-expanded={!warmupDone}
-        >
-          <div className="row-between">
-            <strong className="small">Aufwärmen · 4 Minuten</strong>
-            <span className={`badge ${warmupDone ? 'badge-accent' : ''}`}>
-              {warmupDone ? 'erledigt' : 'antippen'}
+        {/* Die Liste steht neben dem Knopf, nicht darin: <button> darf nur
+            Fließtext enthalten, mit <ul> im Inneren ist das Verhalten von
+            Screenreadern browserabhängig. */}
+        <div className="card card-tight" style={{ marginBottom: 12 }}>
+          <button
+            className="card-button"
+            onClick={() => setWarmupDone((v) => !v)}
+            aria-expanded={!warmupDone}
+            aria-controls="warmup-list"
+          >
+            <span className="row-between">
+              <strong className="small">Aufwärmen · 4 Minuten</strong>
+              <span className={`badge ${warmupDone ? 'badge-accent' : ''}`}>
+                {warmupDone ? 'erledigt' : 'antippen'}
+              </span>
             </span>
-          </div>
+          </button>
           {!warmupDone && (
-            <ul className="list-plain small muted" style={{ marginTop: 10, marginBottom: 0 }}>
+            <ul
+              id="warmup-list"
+              className="list-plain small muted"
+              style={{ marginTop: 10, marginBottom: 0 }}
+            >
               {template.warmup.map((w) => (
                 <li key={w}>{w}</li>
               ))}
             </ul>
           )}
-        </button>
+        </div>
 
         <div className="stack">
           {groups.map((group, index) => (
@@ -249,9 +278,11 @@ export default function StrengthSessionPage() {
               }
               onToggleSet={(set) => void toggleSet(group, set)}
               onChangeReps={(set, delta) => void changeReps(set, delta)}
-              onAddSet={() => void addExtraSet(sessionId, group.exerciseKey)}
-              onRemoveSet={() => void removeLastSet(sessionId, group.exerciseKey)}
-              onSetAssist={(level) => void setAssistLevel(sessionId, group.exerciseKey, level)}
+              onAddSet={() => void guard(() => addExtraSet(sessionId, group.exerciseKey))}
+              onRemoveSet={() => void guard(() => removeLastSet(sessionId, group.exerciseKey))}
+              onSetAssist={(level) =>
+                void guard(() => setAssistLevel(sessionId, group.exerciseKey, level))
+              }
               onStartHold={(seconds) => {
                 unlockAudio()
                 restTimer.start(seconds, 'Halten')
@@ -321,6 +352,9 @@ function ExerciseCard({
   // Die Stufe des ersten noch offenen Satzes ist die, die gerade gilt.
   const currentAssist = (group.sets.find((s) => !s.done) ?? group.sets[0])?.assist
   const currentLevel = levelFor(ex.assistLadder, currentAssist)
+  // Wurde mitten in der Übung die Stufe gewechselt, reicht der Farbpunkt nicht mehr:
+  // Orange gegen Gelb ist für Farbfehlsichtige kein Unterschied. Dann kommt der Name dazu.
+  const mixedAssist = ladder !== undefined && new Set(group.sets.map((s) => s.assist)).size > 1
 
   return (
     <div className="exercise-card" data-current={expanded} data-complete={complete}>
@@ -406,6 +440,7 @@ function ExerciseCard({
 
           {group.sets.map((set, i) => {
             const value = set.actual ?? set.target
+            const setLevel = levelFor(ex.assistLadder, set.assist)
             return (
               <div className="set-row" key={`${set.exerciseKey}-${set.setIndex}`}>
                 <span className="set-label">
@@ -413,24 +448,36 @@ function ExerciseCard({
                   {ladder && (
                     // Kleiner Farbpunkt: Nach einem Bandwechsel mitten in der Einheit
                     // ist sonst nicht mehr erkennbar, welcher Satz auf welcher Stufe lief.
-                    <span
-                      aria-hidden
-                      style={{
-                        display: 'block',
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        marginTop: 3,
-                        background: levelFor(ex.assistLadder, set.assist)?.color ?? 'var(--border)',
-                      }}
-                    />
+                    // Die Farbe allein trägt die Information nicht — der Name steht
+                    // für Screenreader daneben, und bei gemischten Stufen auch sichtbar.
+                    <>
+                      <span
+                        aria-hidden
+                        style={{
+                          display: 'block',
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          marginTop: 3,
+                          background: setLevel?.color ?? 'var(--border)',
+                        }}
+                      />
+                      <span className="sr-only">{setLevel?.name ?? 'Stufe unbekannt'}</span>
+                      {mixedAssist && (
+                        <span aria-hidden className="set-level">
+                          {setLevel?.short}
+                        </span>
+                      )}
+                    </>
                   )}
                 </span>
                 <div className="rep-stepper">
+                  {/* Mit Satznummer: „weniger" allein klingt bei 25 Sätzen auf einer
+                      Seite fünfundzwanzigmal identisch. */}
                   <button
                     className="step-btn"
                     onClick={() => onChangeReps(set, -1)}
-                    aria-label="weniger"
+                    aria-label={`Satz ${i + 1}: weniger`}
                   >
                     <IconMinus size={18} />
                   </button>
@@ -442,7 +489,11 @@ function ExerciseCard({
                     {value}
                     {isSeconds ? 's' : ''}
                   </span>
-                  <button className="step-btn" onClick={() => onChangeReps(set, 1)} aria-label="mehr">
+                  <button
+                    className="step-btn"
+                    onClick={() => onChangeReps(set, 1)}
+                    aria-label={`Satz ${i + 1}: mehr`}
+                  >
                     <IconPlus size={18} />
                   </button>
                 </div>
@@ -450,7 +501,7 @@ function ExerciseCard({
                   className="check-btn"
                   data-done={set.done}
                   onClick={() => onToggleSet(set)}
-                  aria-label={set.done ? 'Satz zurücknehmen' : 'Satz abhaken'}
+                  aria-label={`Satz ${i + 1} ${set.done ? 'zurücknehmen' : 'abhaken'}`}
                 >
                   <IconCheck size={20} />
                 </button>
@@ -528,7 +579,7 @@ function FinishForm({
 }: {
   doneCount: number
   totalCount: number
-  elapsed: number
+  elapsed: number | undefined
   rpe: number | undefined
   notes: string
   onRpe: (v: number) => void
@@ -544,7 +595,8 @@ function FinishForm({
       </button>
       <h1 className="page-title">Einheit abschließen</h1>
       <p className="page-subtitle">
-        {doneCount} von {totalCount} Sätzen · {formatDuration(elapsed)}
+        {doneCount} von {totalCount} Sätzen
+        {elapsed !== undefined ? ` · ${formatDuration(elapsed)}` : ''}
       </p>
 
       {incomplete && (

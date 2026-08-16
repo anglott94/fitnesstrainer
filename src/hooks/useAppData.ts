@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, DEFAULT_SETTINGS } from '../db/db'
+import { BACKUP_REMINDER_AFTER, countBackupRelevantEntries, db, DEFAULT_SETTINGS } from '../db/db'
 import { buildWeekPlan, type WeekPlan } from '../domain/plan'
 import type { Match, RunSession, Settings, StrengthSession } from '../domain/types'
 import { buildZones, type Zones } from '../domain/zones'
@@ -72,6 +72,44 @@ export function useBodyLogs() {
     [],
     [],
   )
+}
+
+export interface BackupStatus {
+  /** Wie viele Einträge es insgesamt gibt. */
+  entryCount: number
+  /** Wie viele davon seit der letzten Sicherung dazugekommen sind. */
+  newSinceBackup: number
+  /** Ist die Schwelle überschritten, ab der erinnert wird? */
+  overdue: boolean
+  lastBackupAt?: string
+}
+
+/**
+ * Stand der Sicherung. Die Daten liegen nur in diesem Browser — deshalb zählt die
+ * App mit, wie viel seit dem letzten Export dazugekommen ist, statt darauf zu hoffen,
+ * dass jemand von selbst daran denkt.
+ */
+export function useBackupStatus(settings: Settings): BackupStatus {
+  const strength = useDoneStrengthSessions()
+  const runs = useRunSessions()
+  const matches = useMatches()
+  const bodyLogs = useBodyLogs()
+
+  const entryCount = countBackupRelevantEntries({
+    strengthSessions: strength.length,
+    runSessions: runs.length,
+    matches: matches.length,
+    bodyLogs: bodyLogs.length,
+  })
+  const newSinceBackup = Math.max(0, entryCount - (settings.lastBackupEntryCount ?? 0))
+
+  return {
+    entryCount,
+    newSinceBackup,
+    // Ein frischer Bestand ohne Sicherung soll nicht ab dem ersten Eintrag mahnen.
+    overdue: newSinceBackup >= BACKUP_REMINDER_AFTER,
+    lastBackupAt: settings.lastBackupAt,
+  }
 }
 
 export interface WeekStatus {

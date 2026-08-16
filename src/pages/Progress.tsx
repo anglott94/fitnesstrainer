@@ -28,6 +28,7 @@ import { formatDateShort, todayISO } from '../lib/date'
 import { upsertBodyLog } from '../db/repo'
 import { hasOwnPerformanceData } from '../db/db'
 import { Disclosure } from '../components/Disclosure'
+import { useWriteGuard } from '../components/ErrorToast'
 import { weeklySeries } from '../lib/stats'
 
 export default function Progress() {
@@ -403,35 +404,50 @@ function MatchSection() {
   )
 }
 
+/** Grenzen, außerhalb derer ein Tippfehler wahrscheinlicher ist als der Wert. */
+const WEIGHT_MIN_KG = 30
+const WEIGHT_MAX_KG = 250
+
 function WeightInput() {
   const [value, setValue] = useState('')
   const [saved, setSaved] = useState(false)
+  const guard = useWriteGuard()
+
+  const weight = Number(value.replace(',', '.'))
+  const valid = Number.isFinite(weight) && weight >= WEIGHT_MIN_KG && weight <= WEIGHT_MAX_KG
 
   async function save() {
-    const weight = Number(value.replace(',', '.'))
-    if (!Number.isFinite(weight) || weight <= 0) return
-    await upsertBodyLog({ date: todayISO(), weightKg: weight })
+    if (!valid) return
+    if (!(await guard(() => upsertBodyLog({ date: todayISO(), weightKg: weight })))) return
     setValue('')
     setSaved(true)
     window.setTimeout(() => setSaved(false), 2000)
   }
 
   return (
-    <div className="row" style={{ marginTop: 14, gap: 8 }}>
-      <input
-        className="input"
-        type="number"
-        inputMode="decimal"
-        step="0.1"
-        min="0"
-        placeholder="Gewicht heute in kg"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        aria-label="Gewicht heute in Kilogramm"
-      />
-      <button className="btn btn-ghost nowrap" onClick={() => void save()} disabled={!value}>
-        {saved ? 'Gespeichert' : 'Eintragen'}
-      </button>
-    </div>
+    <>
+      <div className="row" style={{ marginTop: 14, gap: 8 }}>
+        <input
+          className="input"
+          type="number"
+          inputMode="decimal"
+          step="0.1"
+          min={WEIGHT_MIN_KG}
+          max={WEIGHT_MAX_KG}
+          placeholder="Gewicht heute in kg"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          aria-label="Gewicht heute in Kilogramm"
+        />
+        <button className="btn btn-ghost nowrap" onClick={() => void save()} disabled={!valid}>
+          {saved ? 'Gespeichert' : 'Eintragen'}
+        </button>
+      </div>
+      {value !== '' && !valid && (
+        <p className="tiny dim" style={{ margin: '6px 0 0' }}>
+          Erwartet werden {WEIGHT_MIN_KG} bis {WEIGHT_MAX_KG} kg.
+        </p>
+      )}
+    </>
   )
 }

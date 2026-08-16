@@ -13,7 +13,8 @@ import { todayISO } from '../lib/date'
  * Local-First: Alle Daten liegen in der IndexedDB des Geräts. Kein Server, kein
  * Account, keine laufenden Kosten — und die App funktioniert vollständig offline.
  * Der Preis dafür: Die Daten hängen an diesem Browser. Deshalb gibt es in den
- * Einstellungen einen Export, und die App erinnert nach 20 Einheiten daran.
+ * Einstellungen einen Export, und die App erinnert daran, sobald seit der letzten
+ * Sicherung `BACKUP_REMINDER_AFTER` neue Einträge dazugekommen sind.
  */
 export class TrainerDB extends Dexie {
   settings!: Table<Settings, number>
@@ -153,12 +154,64 @@ export async function exportBackup(): Promise<BackupFile> {
   }
 }
 
+/** Nach so vielen neuen Einträgen seit der letzten Sicherung wird erinnert. */
+export const BACKUP_REMINDER_AFTER = 20
+
+/**
+ * Alles, was bei einem Verlust wirklich weh täte. Übungsvorgaben zählen nicht mit —
+ * die leiten sich aus den Einheiten ab und wachsen nicht unabhängig.
+ */
+export function countBackupRelevantEntries(counts: {
+  strengthSessions: number
+  runSessions: number
+  matches: number
+  bodyLogs: number
+}): number {
+  return counts.strengthSessions + counts.runSessions + counts.matches + counts.bodyLogs
+}
+
+/** Merkt sich, dass gerade gesichert wurde. */
+export async function markBackupDone(entryCount: number): Promise<void> {
+  await updateSettings({ lastBackupAt: todayISO(), lastBackupEntryCount: entryCount })
+}
+
 export interface ImportResult {
   strengthSessions: number
   runSessions: number
   bodyLogs: number
   matches: number
+  /** Datensätze, die die Prüfung nicht bestanden haben und übersprungen wurden. */
+  skipped: number
 }
+
+/**
+ * Prüft die Datensätze einer Sicherung, bevor sie den Bestand ersetzen.
+ *
+ * `format` allein reicht nicht: Eine abgeschnittene oder von Hand bearbeitete Datei
+ * trägt die richtige Kennung und trotzdem Müll. Was die Prüfung nicht besteht, wird
+ * übersprungen statt eingespielt — lieber ein unvollständiger Import als ein Bestand,
+ * an dem die App später beim Rechnen abstürzt.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function pickValid<T>(raw: unknown, isValid: (row: Record<string, unknown>) => boolean): {
+  rows: T[]
+  skipped: number
+} {
+  if (!Array.isArray(raw)) return { rows: [], skipped: 0 }
+  const rows: T[] = []
+  let skipped = 0
+  for (const row of raw) {
+    if (isRecord(row) && isValid(row)) rows.push(row as T)
+    else skipped++
+  }
+  return { rows, skipped }
+}
+
+const hasDate = (row: Record<string, unknown>) =>
+  typeof row.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.date)
 
 /**
  * Spielt eine Sicherung ein und ersetzt dabei den kompletten Bestand.
@@ -170,11 +223,41 @@ export async function importBackup(raw: unknown): Promise<ImportResult> {
   if (!data || data.format !== 'schiri-trainer-backup') {
     throw new Error('Das ist keine gültige Sicherungsdatei des Schiri-Trainers.')
   }
+  if (data.version !== 1) {
+    throw new Error(
+      `Diese Sicherung hat Version ${String(data.version)}, diese App kann Version 1 lesen.`,
+    )
+  }
 
-  const strengthSessions = data.strengthSessions ?? []
-  const runSessions = data.runSessions ?? []
-  const bodyLogs = data.bodyLogs ?? []
-  const matches = data.matches ?? []
+  const strength = pickValid<StrengthSession>(
+    data.strengthSessions,
+    (r) => hasDate(r) && Array.isArray(r.sets) && typeof r.templateKey === 'string',
+  )
+  const runs = pickValid<RunSession>(
+    data.runSessions,
+    (r) => hasDate(r) && typeof r.planKey === 'string',
+  )
+  const body = pickValid<BodyLog>(data.bodyLogs, hasDate)
+  const match = pickValid<Match>(data.matches, hasDate)
+  const states = pickValid<ExerciseState>(
+    data.exerciseStates,
+    (r) => typeof r.key === 'string' && typeof r.target === 'number',
+  )
+
+  const skipped =
+    strength.skipped + runs.skipped + body.skipped + match.skipped + states.skipped
+
+  // Eine Datei, in der nichts Brauchbares steht, darf den Bestand nicht leeren.
+  const total =
+    strength.rows.length + runs.rows.length + body.rows.length + match.rows.length
+  if (total === 0 && skipped > 0) {
+    throw new Error('Die Sicherungsdatei enthält keine lesbaren Einträge. Nichts geändert.')
+  }
+
+  const strengthSessions = strength.rows
+  const runSessions = runs.rows
+  const bodyLogs = body.rows
+  const matches = match.rows
 
   const tables = [
     db.settings,
@@ -200,7 +283,7 @@ export async function importBackup(raw: unknown): Promise<ImportResult> {
     }
     if (strengthSessions.length) await db.strengthSessions.bulkPut(strengthSessions)
     if (runSessions.length) await db.runSessions.bulkPut(runSessions)
-    if (data.exerciseStates?.length) await db.exerciseStates.bulkPut(data.exerciseStates)
+    if (states.rows.length) await db.exerciseStates.bulkPut(states.rows)
     if (bodyLogs.length) await db.bodyLogs.bulkPut(bodyLogs)
     if (matches.length) await db.matches.bulkPut(matches)
   })
@@ -210,6 +293,7 @@ export async function importBackup(raw: unknown): Promise<ImportResult> {
     runSessions: runSessions.length,
     bodyLogs: bodyLogs.length,
     matches: matches.length,
+    skipped,
   }
 }
 

@@ -7,6 +7,7 @@ import type { Match, RunSession, SetLog, StrengthSession } from '../domain/types
 import { levelFor } from '../domain/assistance'
 import { formatDateLong, formatDuration, formatPace, formatRelative, weekKey } from '../lib/date'
 import { IconRun, IconStrength, IconTrash, IconWhistle } from '../components/icons'
+import { useWriteGuard } from '../components/ErrorToast'
 
 type Entry =
   | { kind: 'strength'; date: string; sortKey: number; session: StrengthSession }
@@ -19,6 +20,7 @@ export default function History() {
   const matches = useMatches()
   const [filter, setFilter] = useState<'all' | 'strength' | 'run' | 'match'>('all')
   const [openId, setOpenId] = useState<string | null>(null)
+  const guard = useWriteGuard()
 
   const entries = useMemo<Entry[]>(() => {
     const all: Entry[] = [
@@ -90,28 +92,37 @@ export default function History() {
               const id = entryId(entry)
               return (
                 <div key={id} className="card card-tight">
+                  {/* Nur <span> im <button>: Blockelemente sind dort nicht erlaubt
+                      und werden von Screenreadern uneinheitlich behandelt. */}
                   <button
                     className="row-between"
                     style={{ width: '100%', textAlign: 'left' }}
                     onClick={() => setOpenId((o) => (o === id ? null : id))}
+                    aria-expanded={openId === id}
+                    aria-controls={`entry-${id}`}
                   >
-                    <div className="row" style={{ minWidth: 0 }}>
+                    <span className="row" style={{ minWidth: 0 }}>
                       {entry.kind === 'strength' && <IconStrength size={18} className="muted" />}
                       {entry.kind === 'run' && <IconRun size={18} className="muted" />}
                       {entry.kind === 'match' && <IconWhistle size={18} className="muted" />}
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 600 }}>{entryTitle(entry)}</div>
-                        <div className="tiny dim">
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, display: 'block' }}>
+                          {entryTitle(entry)}
+                        </span>
+                        <span className="tiny dim" style={{ display: 'block' }}>
                           {formatRelative(entry.date)}
                           {entrySubtitle(entry)}
-                        </div>
-                      </div>
-                    </div>
+                        </span>
+                      </span>
+                    </span>
                     <span className="dim">{openId === id ? '−' : '›'}</span>
                   </button>
 
                   {openId === id && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                    <div
+                      id={`entry-${id}`}
+                      style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}
+                    >
                       {entry.kind === 'strength' && <StrengthDetail session={entry.session} />}
                       {entry.kind === 'run' && <RunDetailRow run={entry.run} />}
                       {entry.kind === 'match' && <MatchDetailRow match={entry.match} />}
@@ -120,9 +131,12 @@ export default function History() {
                         style={{ marginTop: 14 }}
                         onClick={() => {
                           if (!window.confirm('Diesen Eintrag löschen?')) return
-                          if (entry.kind === 'strength') void deleteStrengthSession(entry.session.id!)
-                          else if (entry.kind === 'run') void deleteRun(entry.run.id!)
-                          else void deleteMatch(entry.match.id!)
+                          void guard(() => {
+                            if (entry.kind === 'strength')
+                              return deleteStrengthSession(entry.session.id!)
+                            if (entry.kind === 'run') return deleteRun(entry.run.id!)
+                            return deleteMatch(entry.match.id!)
+                          })
                           setOpenId(null)
                         }}
                       >
