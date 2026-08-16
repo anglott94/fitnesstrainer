@@ -33,9 +33,10 @@ export function buildSets(
   isDeload: boolean,
   isShort = false,
   disabled: readonly string[] = [],
+  preferences: Record<string, string> = {},
 ): SetLog[] {
   const sets: SetLog[] = []
-  for (const block of resolveBlocks(template, disabled, isShort)) {
+  for (const block of resolveBlocks(template, disabled, isShort, preferences)) {
     const base = targetFor(block.exerciseKey, states)
     const target = adjustTarget(base, isDeload, getExercise(block.exerciseKey).unit)
     const count = adjustSets(block.sets, isDeload)

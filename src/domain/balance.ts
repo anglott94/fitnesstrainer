@@ -47,10 +47,13 @@ export interface BalanceReport {
 }
 
 /** Wochensätze je Bewegungsmuster über beide Workouts, nach Auflösung der Auswahl. */
-function weeklySetsByPattern(disabled: readonly string[]): Map<string, number> {
+function weeklySetsByPattern(
+  disabled: readonly string[],
+  preferences: Record<string, string>,
+): Map<string, number> {
   const counts = new Map<string, number>()
   for (const workout of WORKOUTS) {
-    for (const block of resolveBlocks(workout, disabled, false)) {
+    for (const block of resolveBlocks(workout, disabled, false, preferences)) {
       const pattern = getExercise(block.exerciseKey).pattern
       counts.set(pattern, (counts.get(pattern) ?? 0) + block.sets)
     }
@@ -58,9 +61,12 @@ function weeklySetsByPattern(disabled: readonly string[]): Map<string, number> {
   return counts
 }
 
-export function checkBalance(disabled: readonly string[]): BalanceReport {
+export function checkBalance(
+  disabled: readonly string[],
+  preferences: Record<string, string> = {},
+): BalanceReport {
   const off = new Set(disabled)
-  const setsByPattern = weeklySetsByPattern(disabled)
+  const setsByPattern = weeklySetsByPattern(disabled, preferences)
 
   const patterns: PatternStatus[] = PATTERNS.map((pattern) => {
     const all = exercisesForPattern(pattern.key)
@@ -143,10 +149,15 @@ export function isLastOfRequiredPattern(key: string, disabled: readonly string[]
 }
 
 /** Alle Übungen, die aktuell in mindestens einem Workout vorkommen. */
-export function scheduledExerciseKeys(disabled: readonly string[]): Set<string> {
+export function scheduledExerciseKeys(
+  disabled: readonly string[],
+  preferences: Record<string, string> = {},
+): Set<string> {
   const keys = new Set<string>()
   for (const workout of WORKOUTS) {
-    for (const block of resolveBlocks(workout, disabled, false)) keys.add(block.exerciseKey)
+    for (const block of resolveBlocks(workout, disabled, false, preferences)) {
+      keys.add(block.exerciseKey)
+    }
   }
   return keys
 }

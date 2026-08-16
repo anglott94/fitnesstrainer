@@ -23,12 +23,26 @@ export default function ExercisePicker() {
   const settings = useSettings()
   const disabled = settings.disabledExercises
 
-  const report = useMemo(() => checkBalance(disabled), [disabled])
-  const scheduled = useMemo(() => scheduledExerciseKeys(disabled), [disabled])
+  const preferences = settings.exercisePreferences
+
+  const report = useMemo(() => checkBalance(disabled, preferences), [disabled, preferences])
+  const scheduled = useMemo(
+    () => scheduledExerciseKeys(disabled, preferences),
+    [disabled, preferences],
+  )
 
   async function toggle(key: string, isOff: boolean) {
     const next = isOff ? disabled.filter((k) => k !== key) : [...disabled, key]
     await updateSettings({ disabledExercises: next })
+  }
+
+  /** Diese Übung ab jetzt für ihr Muster im Plan verwenden. */
+  async function choose(pattern: string, key: string) {
+    await updateSettings({
+      exercisePreferences: { ...preferences, [pattern]: key },
+      // Eine Übung, die man ausdrücklich in den Plan holt, kann nicht abgewählt bleiben.
+      disabledExercises: disabled.filter((k) => k !== key),
+    })
   }
 
   const activeCount = report.patterns.reduce((n, p) => n + p.active.length, 0)
@@ -125,6 +139,7 @@ export default function ExercisePicker() {
 
           <p className="tiny dim" style={{ margin: '0 0 9px 13px' }}>
             {status.pattern.covers}
+            {status.all.length > 1 ? ' · Punkt antippen, um zu tauschen' : ''}
           </p>
 
           <div className="list">
@@ -135,6 +150,7 @@ export default function ExercisePicker() {
                 off={disabled.includes(ex.key)}
                 inPlan={scheduled.has(ex.key)}
                 locked={isLastOfRequiredPattern(ex.key, disabled)}
+                onChoose={() => void choose(status.pattern.key, ex.key)}
                 onToggle={() => void toggle(ex.key, disabled.includes(ex.key))}
               />
             ))}
@@ -159,32 +175,51 @@ export default function ExercisePicker() {
   )
 }
 
+/**
+ * Eine Zeile mit drei getrennten Zielen, weil es drei verschiedene Absichten gibt:
+ * links den Punkt antippen heißt „diese Übung in den Plan", der Name führt zur
+ * Ausführung, der Schalter rechts nimmt die Übung ganz aus dem Angebot.
+ */
 function ExerciseRow({
   exercise,
   off,
   inPlan,
   locked,
+  onChoose,
   onToggle,
 }: {
   exercise: Exercise
   off: boolean
   inPlan: boolean
   locked: boolean
+  onChoose: () => void
   onToggle: () => void
 }) {
   return (
     <div className="list-row" data-off={off}>
+      <button
+        className="pick"
+        data-on={inPlan && !off}
+        aria-label={inPlan ? `${exercise.name} ist im Plan` : `${exercise.name} in den Plan nehmen`}
+        aria-pressed={inPlan && !off}
+        onClick={onChoose}
+      />
+
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div className="row" style={{ gap: 7, flexWrap: 'wrap' }}>
-          <Link to={`/uebungen/${exercise.key}`} className="list-title" style={{ color: 'inherit' }}>
-            {exercise.name}
-          </Link>
-          {inPlan && !off && <span className="badge badge-accent">im Plan</span>}
-        </div>
+        <Link to={`/uebungen/${exercise.key}`} className="list-title" style={{ color: 'inherit' }}>
+          {exercise.name}
+        </Link>
         <div className="list-sub">
-          {locked && !off ? 'Letzte Übung dieses Pflichtmusters' : 'Antippen für die Ausführung'}
+          {off
+            ? 'Abgewählt'
+            : inPlan
+              ? locked
+                ? 'Im Plan · letzte Übung dieses Pflichtmusters'
+                : 'Im Plan'
+              : 'Ersatz — antippen, um zu tauschen'}
         </div>
       </div>
+
       <button
         className="switch"
         data-on={!off}

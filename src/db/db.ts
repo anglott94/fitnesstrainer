@@ -52,6 +52,14 @@ export class TrainerDB extends Dexie {
         await tx.table('settings').put({ ...settings, disabledExercises: [], id: 1 })
       }
     })
+
+    // Version 4: Wunschübung je Bewegungsmuster.
+    this.version(4).upgrade(async (tx) => {
+      const settings = await tx.table('settings').get(1)
+      if (settings && typeof settings.exercisePreferences !== 'object') {
+        await tx.table('settings').put({ ...settings, exercisePreferences: {}, id: 1 })
+      }
+    })
   }
 }
 
@@ -88,6 +96,7 @@ export const DEFAULT_SETTINGS: Settings = {
   vibrationEnabled: true,
   keepScreenAwake: true,
   disabledExercises: [],
+  exercisePreferences: {},
   ...PERFORMANCE_DEFAULTS,
 }
 

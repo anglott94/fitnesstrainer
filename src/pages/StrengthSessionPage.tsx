@@ -330,24 +330,35 @@ function ExerciseCard({
         </span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontWeight: 620 }}>{ex.name}</span>
-          <span className="tiny dim">
-            {doneSets}/{group.sets.length} Sätze · Ziel {group.sets[0]?.target}
-            {isSeconds ? 's' : ' Wdh'}
-            {ex.unilateral ? ' je Seite' : ''}
-          </span>
-          {currentLevel && (
-            <span
-              className="badge"
-              style={{
-                marginTop: 4,
-                color: currentLevel.color,
-                borderColor: currentLevel.color,
-                background: 'transparent',
-              }}
-            >
-              {currentLevel.name}
+          {/* Eigene Zeile als Flex-Container: Vorher standen Text und Badge als
+              zwei Inline-Spans direkt aneinander, ohne jeden Abstand. */}
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
+              marginTop: 3,
+            }}
+          >
+            <span className="tiny dim">
+              {doneSets}/{group.sets.length} Sätze · Ziel {group.sets[0]?.target}
+              {isSeconds ? 's' : ' Wdh'}
+              {ex.unilateral ? ' je Seite' : ''}
             </span>
-          )}
+            {currentLevel && (
+              <span
+                className="badge"
+                style={{
+                  color: currentLevel.color,
+                  borderColor: currentLevel.color,
+                  background: 'transparent',
+                }}
+              >
+                {currentLevel.name}
+              </span>
+            )}
+          </span>
         </span>
         <IconChevronDown
           size={18}

@@ -343,6 +343,30 @@ h4 {
   flex-shrink: 0;
 }
 
+/* Wählknopf: Welche Übung eines Musters steht im Plan? */
+.pick {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  position: relative;
+  transition: border-color 0.15s ease;
+}
+
+.pick[data-on='true'] {
+  border-color: var(--accent);
+}
+
+.pick[data-on='true']::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 /* Gruppenkopf über einer Liste — ohne eigene Karte, nur mit Farbkante. */
 .group-head {
   display: flex;

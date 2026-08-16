@@ -136,6 +136,7 @@ export default function Today() {
             isDeload={plan.isDeload}
             states={states}
             disabled={settings.disabledExercises}
+            preferences={settings.exercisePreferences}
             onStart={(isShort) => void beginStrength(nextWorkoutKey, isShort)}
           />
         </>
@@ -274,17 +275,19 @@ function StrengthPreview({
   isDeload,
   states,
   disabled,
+  preferences,
   onStart,
 }: {
   workoutKey: string
   isDeload: boolean
   states: ReturnType<typeof useExerciseStates>
   disabled: string[]
+  preferences: Record<string, string>
   onStart: (isShort: boolean) => void
 }) {
   const [short, setShort] = useState(false)
   const workout = getWorkout(workoutKey)
-  const blocks = resolveBlocks(workout, disabled, short)
+  const blocks = resolveBlocks(workout, disabled, short, preferences)
   const totalSets = blocks.reduce((n, b) => n + adjustSets(b.sets, isDeload), 0)
   const minutes = short ? workout.shortApproxMinutes : workout.approxMinutes
   const dropped = workout.blocks.length - blocks.length

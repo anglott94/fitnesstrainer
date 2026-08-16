@@ -200,17 +200,20 @@ export interface ResolvedBlock extends TemplateBlock {
 }
 
 /**
- * Setzt die abgewählten Übungen in konkrete Blöcke um.
+ * Setzt Wunschübungen und abgewählte Übungen in konkrete Blöcke um.
  *
- * Ist die vorgesehene Übung abgewählt, rückt die erste noch aktive Übung desselben
- * Bewegungsmusters nach — der Plan behält also seine Struktur, auch wenn einzelne
- * Übungen nicht gefallen. Erst wenn ein ganzes Muster abgewählt ist, entfällt der
- * Block; darauf weist die Übungsauswahl vorher hin.
+ * Zwei verschiedene Absichten werden hier zusammengeführt:
+ *  - **Austauschen** („ich mache lieber Untergriff"): eine Wunschübung je Muster.
+ *  - **Abwählen** („diese Übung nie"): die Übung fällt komplett raus.
+ *
+ * Erst wenn ein ganzes Muster leer ist, entfällt der Block — darauf weist die
+ * Übungsauswahl vorher hin.
  */
 export function resolveBlocks(
   template: WorkoutTemplate,
   disabled: readonly string[],
   isShort = false,
+  preferences: Record<string, string> = {},
 ): ResolvedBlock[] {
   const off = new Set(disabled)
   const used = new Set<string>()
@@ -218,24 +221,34 @@ export function resolveBlocks(
 
   for (const block of activeBlocks(template, isShort)) {
     const planned = block.exerciseKey
-    if (!off.has(planned) && !used.has(planned)) {
-      used.add(planned)
+    const ownPattern = getExercise(planned).pattern
+
+    /*
+     * Rangfolge:
+     *   1. Wunschübung für dieses Muster, falls gesetzt
+     *   2. die in der Vorlage vorgesehene Übung
+     *   3. irgendeine andere aktive Übung desselben Musters
+     *   4. eine Übung aus einem zugelassenen Ersatzmuster
+     * Schon belegte Übungen fallen raus, damit dieselbe nicht zweimal in einer
+     * Einheit landet.
+     */
+    const candidates: string[] = [
+      ...(preferences[ownPattern] ? [preferences[ownPattern]] : []),
+      planned,
+      ...exercisesForPattern(ownPattern).map((e) => e.key),
+      ...(block.altPatterns ?? []).flatMap((p) => exercisesForPattern(p).map((e) => e.key)),
+    ]
+
+    const pick = candidates.find((key) => !off.has(key) && !used.has(key))
+    if (!pick) continue // alles abgewählt oder schon belegt
+
+    used.add(pick)
+    if (pick === planned) {
       result.push(block)
-      continue
+    } else {
+      // Der Hinweistext gehört zur ursprünglichen Übung und passt sonst nicht mehr.
+      result.push({ ...block, exerciseKey: pick, note: undefined, substitutedFor: planned })
     }
-
-    // Erst im eigenen Muster suchen, dann in den zugelassenen Ersatzmustern.
-    const candidates = [getExercise(planned).pattern, ...(block.altPatterns ?? [])]
-    let standIn: { key: string } | undefined
-    for (const pattern of candidates) {
-      standIn = exercisesForPattern(pattern).find((e) => !off.has(e.key) && !used.has(e.key))
-      if (standIn) break
-    }
-    if (!standIn) continue // alles abgewählt oder schon belegt
-
-    used.add(standIn.key)
-    // Der Hinweistext gehört zur ursprünglichen Übung und passt sonst nicht mehr.
-    result.push({ ...block, exerciseKey: standIn.key, note: undefined, substitutedFor: planned })
   }
 
   return result

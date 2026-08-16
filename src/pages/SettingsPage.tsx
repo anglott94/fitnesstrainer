@@ -294,6 +294,31 @@ function PerformanceSection() {
   const [testDate, setTestDate] = useState(settings.testDate)
   const [saved, setSaved] = useState(false)
 
+  /**
+   * Felder nachziehen, sobald die gespeicherten Werte eintreffen.
+   *
+   * useState wertet seinen Startwert nur beim ersten Rendern aus. Zu dem Zeitpunkt
+   * hat die Datenbankabfrage noch nicht geantwortet, useSettings liefert also die
+   * Platzhalter — und die blieben ohne diesen Effekt für immer im Formular stehen,
+   * obwohl die Datenbank längst die richtigen Werte enthielt. Beim Tippen ändern
+   * sich die Abhängigkeiten nicht, laufende Eingaben werden also nicht überschrieben.
+   */
+  useEffect(() => {
+    const totalSeconds = settings.testPaceSecPerKm * settings.testDistanceKm
+    setHrMax(String(settings.hrMax))
+    setHrRest(String(settings.hrRest))
+    setTestKm(String(settings.testDistanceKm))
+    setTestMin(String(Math.floor(totalSeconds / 60)))
+    setTestSec(String(Math.round(totalSeconds % 60)))
+    setTestDate(settings.testDate)
+  }, [
+    settings.hrMax,
+    settings.hrRest,
+    settings.testDistanceKm,
+    settings.testPaceSecPerKm,
+    settings.testDate,
+  ])
+
   const km = Number(testKm.replace(',', '.'))
   const totalSec = (Number(testMin) || 0) * 60 + (Number(testSec) || 0)
   const paceSec = km > 0 && totalSec > 0 ? Math.round(totalSec / km) : 0

@@ -40,7 +40,14 @@ export async function startStrengthSession(
     deload: isDeload,
     short: isShort,
     startedAt: Date.now(),
-    sets: buildSets(template, states, isDeload, isShort, settings?.disabledExercises ?? []),
+    sets: buildSets(
+      template,
+      states,
+      isDeload,
+      isShort,
+      settings?.disabledExercises ?? [],
+      settings?.exercisePreferences ?? {},
+    ),
   }
   return (await db.strengthSessions.add(session)) as number
 }

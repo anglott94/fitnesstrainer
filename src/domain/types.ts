@@ -226,6 +226,15 @@ export interface Settings {
    */
   disabledExercises: string[]
 
+  /**
+   * Wunschübung je Bewegungsmuster: Musterschlüssel -> Übungsschlüssel.
+   *
+   * Abwählen und Austauschen sind zwei verschiedene Absichten. „Ich mache lieber
+   * Klimmzüge im Untergriff" heißt nicht „den Obergriff will ich nie wieder sehen".
+   * Steht hier eine Wunschübung, gewinnt sie gegen die Vorlage, solange sie aktiv ist.
+   */
+  exercisePreferences: Record<string, string>
+
   hrMax: number
   hrRest: number
   /** Tempo des letzten All-out-Tests in Sekunden pro Kilometer. */
