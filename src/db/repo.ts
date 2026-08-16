@@ -1,6 +1,8 @@
 import { db } from './db'
 import type { Match, RunSession, SetLog, StrengthSession } from '../domain/types'
 import { getWorkout } from '../domain/workouts'
+import { getExercise } from '../domain/exercises'
+import { defaultLevel } from '../domain/assistance'
 import { getRun } from '../domain/runs'
 import { buildSets, evaluateSession, type ProgressionChange } from '../domain/progression'
 import { todayISO } from '../lib/date'
@@ -182,6 +184,38 @@ export async function updateRun(id: number, patch: Partial<RunSession>): Promise
 
 export async function deleteRun(id: number): Promise<void> {
   await db.runSessions.delete(id)
+}
+
+// ---------------------------------------------------------------------------
+// Übungsvorgaben von Hand setzen
+// ---------------------------------------------------------------------------
+
+/**
+ * Setzt Vorgabe und Unterstützungsstufe einer Übung direkt.
+ *
+ * Nötig immer dann, wenn die Automatik keinen Anhaltspunkt hat: beim Wechsel auf
+ * eine andere Übung desselben Musters, nach einer längeren Pause oder wenn der
+ * Startwert einfach nicht passt. Ohne das müsste man sich über mehrere Einheiten
+ * mit je einer Wiederholung an den richtigen Wert herantasten.
+ */
+export async function setExerciseTarget(
+  key: string,
+  patch: { target?: number; assist?: string },
+): Promise<void> {
+  const ex = getExercise(key)
+  const existing = await db.exerciseStates.get(key)
+  const target = patch.target ?? existing?.target ?? ex.startTarget
+  const assist = patch.assist ?? existing?.assist ?? defaultLevel(ex.assistLadder)
+
+  await db.exerciseStates.put({
+    key,
+    target: Math.max(1, ex.maxTarget !== undefined ? Math.min(ex.maxTarget, target) : target),
+    bestSet: existing?.bestSet ?? 0,
+    // Bei einem Stufenwechsel von Hand gilt der bisherige Stufen-Bestwert nicht mehr.
+    bestSetOnAssist: assist === existing?.assist ? (existing?.bestSetOnAssist ?? 0) : 0,
+    assist,
+    updatedAt: Date.now(),
+  })
 }
 
 // ---------------------------------------------------------------------------

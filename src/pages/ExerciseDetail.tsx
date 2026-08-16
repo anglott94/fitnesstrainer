@@ -2,6 +2,8 @@ import { Link, useParams } from 'react-router-dom'
 import { EXERCISE_BY_KEY, exercisesForPattern, getExercise } from '../domain/exercises'
 import { getPattern } from '../domain/patterns'
 import { defaultLevel, ladderFor } from '../domain/assistance'
+import { setExerciseTarget } from '../db/repo'
+import { IconMinus, IconPlus } from '../components/icons'
 import { WORKOUTS } from '../domain/workouts'
 import { useDoneStrengthSessions, useExerciseStates } from '../hooks/useAppData'
 import { LineChart } from '../components/Chart'
@@ -30,6 +32,8 @@ export default function ExerciseDetail() {
   const target = state?.target ?? ex.startTarget
   const ladder = ladderFor(ex.assistLadder)
   const currentAssist = state?.assist ?? defaultLevel(ex.assistLadder)
+  // Sekundenübungen in 5er-Schritten — bei einem Seitstütz ist eine Sekunde nichts.
+  const step = ex.unit === 'seconds' ? 5 : 1
   const best = personalBest(sessions, key)
   const series = bestSetSeries(sessions, key)
   const unit = ex.unit === 'seconds' ? 's' : ''
@@ -84,6 +88,74 @@ export default function ExerciseDetail() {
           </div>
         </>
       )}
+
+      <h2 className="section-title">Vorgabe anpassen</h2>
+      <div className="card">
+        <p className="tiny dim" style={{ marginTop: 0 }}>
+          Normalerweise passt die App die Vorgabe nach jeder Einheit selbst an. Von Hand nachstellen
+          lohnt sich, wenn sie keinen Anhaltspunkt hat: nach einem Wechsel auf diese Übung, nach
+          einer längeren Pause, oder wenn der Startwert offensichtlich daneben liegt.
+        </p>
+
+        <div className="row-between" style={{ marginTop: 14 }}>
+          <span className="field-label">
+            Wiederholungen{ex.unit === 'seconds' ? ' (Sekunden)' : ''}
+            {ex.unilateral ? ' je Seite' : ''}
+          </span>
+          <div className="rep-stepper">
+            <button
+              className="step-btn"
+              aria-label="weniger"
+              onClick={() => void setExerciseTarget(ex.key, { target: target - step })}
+            >
+              <IconMinus size={18} />
+            </button>
+            <span className="rep-value">
+              {target}
+              {ex.unit === 'seconds' ? 's' : ''}
+            </span>
+            <button
+              className="step-btn"
+              aria-label="mehr"
+              onClick={() => void setExerciseTarget(ex.key, { target: target + step })}
+            >
+              <IconPlus size={18} />
+            </button>
+          </div>
+        </div>
+
+        {ladder && (
+          <>
+            <div className="divider" />
+            <span className="field-label" style={{ display: 'block', marginBottom: 8 }}>
+              Unterstützungsstufe
+            </span>
+            <div className="chip-row">
+              {ladder.map((level) => (
+                <button
+                  key={level.key}
+                  className="chip"
+                  data-active={currentAssist === level.key}
+                  style={
+                    currentAssist === level.key
+                      ? { borderColor: level.color, color: level.color, background: 'transparent' }
+                      : undefined
+                  }
+                  onClick={() => void setExerciseTarget(ex.key, { assist: level.key })}
+                >
+                  {level.short}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {ex.maxTarget !== undefined && target >= ex.maxTarget && (
+          <p className="tiny" style={{ margin: '12px 0 0', color: 'var(--warn)' }}>
+            Obergrenze erreicht. Weiter geht es über die schwerere Variante: {ex.harder}
+          </p>
+        )}
+      </div>
 
       {ladder && (
         <>
