@@ -88,8 +88,39 @@ button {
   background: none;
 }
 
+/* Unterstreichung bedeutet in dieser App genau eine Sache: ein Link mitten im
+   Fließtext. Karten, Listenzeilen, Schaltflächen und Navigation tragen ihre
+   Bedienbarkeit schon in der Form — Form plus Unterstreichung sagt dasselbe
+   zweimal, und wenn eine ganze Karte ein Link ist, wird sonst jedes Wort darin
+   unterstrichen, Überschriften und Zahlen eingeschlossen. */
 a {
   color: var(--accent);
+  text-decoration: none;
+}
+
+/* Fließtext-Links: Absätze, Aufklapptexte und explizit ausgezeichnete Stellen. */
+p a,
+li a,
+.link {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(52, 211, 153, 0.5);
+}
+
+p a:active,
+li a:active,
+.link:active {
+  text-decoration-color: var(--accent);
+}
+
+/* Für die Tastaturbedienung bleibt eine sichtbare Markierung nötig — sie kommt
+   hier über den Fokusrahmen statt über die Unterstreichung. */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 
 h1,
@@ -242,7 +273,17 @@ h4 {
   display: block;
   width: 100%;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   transition: transform 0.09s ease, border-color 0.15s ease;
+}
+
+/* Auch Absätze innerhalb einer klickbaren Karte bleiben unmarkiert — die Karte
+   ist der Link, nicht der Satz darin. */
+.card-button p a,
+.card-button a,
+.list-row a {
+  text-decoration: none;
 }
 
 .card-button:active {

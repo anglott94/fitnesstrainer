@@ -486,7 +486,12 @@ function ExerciseCard({
               <p className="tiny muted" style={{ margin: 0 }}>
                 <strong>Zu leicht:</strong> {ex.harder}
               </p>
-              <Link to={`/uebungen/${ex.key}`} className="small" style={{ display: 'inline-block', marginTop: 10 }}>
+              {/* Steht am Ende von Fließtext und ist deshalb bewusst unterstrichen. */}
+              <Link
+                to={`/uebungen/${ex.key}`}
+                className="small link"
+                style={{ display: 'inline-block', marginTop: 10 }}
+              >
                 Ausführliche Beschreibung →
               </Link>
             </div>

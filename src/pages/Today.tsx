@@ -162,17 +162,23 @@ export default function Today() {
                 className="card card-tight card-button"
                 onClick={() => void beginStrength(key)}
               >
-                <div className="row">
-                  <IconStrength size={18} className="muted" />
-                  <span>{getWorkout(key).name}</span>
+                <div className="row-between">
+                  <span className="row">
+                    <IconStrength size={18} className="muted" />
+                    <span>{getWorkout(key).name}</span>
+                  </span>
+                  <span className="list-chevron">›</span>
                 </div>
               </button>
             ))}
             {runsOpen.slice(1).map((key) => (
               <Link key={`r-${key}`} to={`/lauf/${key}`} className="card card-tight card-button">
-                <div className="row">
-                  <IconRun size={18} className="muted" />
-                  <span>{getRun(key).name}</span>
+                <div className="row-between">
+                  <span className="row">
+                    <IconRun size={18} className="muted" />
+                    <span>{getRun(key).name}</span>
+                  </span>
+                  <span className="list-chevron">›</span>
                 </div>
               </Link>
             ))}
@@ -190,17 +196,23 @@ export default function Today() {
                 className="card card-tight card-button"
                 onClick={() => void beginStrength(plan.workoutKeys[0])}
               >
-                <div className="row">
-                  <IconStrength size={18} className="muted" />
-                  <span>Extra-Krafteinheit ({getWorkout(plan.workoutKeys[0]).name})</span>
+                <div className="row-between">
+                  <span className="row">
+                    <IconStrength size={18} className="muted" />
+                    <span>Extra-Krafteinheit</span>
+                  </span>
+                  <span className="list-chevron">›</span>
                 </div>
               </button>
             )}
             {runsOpen.length === 0 && (
               <Link to="/lauf/dauerlauf" className="card card-tight card-button">
-                <div className="row">
-                  <IconRun size={18} className="muted" />
-                  <span>Extra-Lauf: Ruhiger Dauerlauf</span>
+                <div className="row-between">
+                  <span className="row">
+                    <IconRun size={18} className="muted" />
+                    <span>Extra-Lauf: Ruhiger Dauerlauf</span>
+                  </span>
+                  <span className="list-chevron">›</span>
                 </div>
               </Link>
             )}
