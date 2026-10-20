@@ -15,7 +15,7 @@ describe('Ganzkörper-Workout', () => {
     const blocks = resolveBlocks(getWorkout(MAIN_WORKOUT_KEY), [], true)
     const patterns = blocks.map((b) => getExercise(b.exerciseKey).pattern)
     expect(patterns).toEqual(['pull_vertical', 'push_horizontal', 'knee', 'hinge'])
-    expect(blocks.every((b) => b.sets === 2)).toBe(true)
+    expect(blocks.every((b) => b.sets === 3)).toBe(true)
   })
 
   it('findet ältere A/B-Einheiten weiterhin, damit der Verlauf lesbar bleibt', () => {

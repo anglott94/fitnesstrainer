@@ -27,11 +27,12 @@ import { exercisesForPattern, getExercise } from './exercises'
  * Gegenspieler zum Überkopfdrücken, nicht zum Liegestütz. Die Muskeln, die die
  * Schulterblätter zusammenziehen, arbeiten beim waagerechten Ziehen deutlich stärker.
  *
- * ── Kurzform (rund 20 Minuten) ─────────────────────────────────────────────
+ * ── Kurzform (rund 25 Minuten) ─────────────────────────────────────────────
  *
  * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Es bleiben
- * die vier Grundbewegungen Zug, Druck, Knie und Hüfte mit je zwei Sätzen und
- * kürzeren Pausen (`shortRestSec`). Sprünge, Vorsorge- und Rumpfarbeit fallen weg.
+ * die vier Grundbewegungen Zug, Druck, Knie und Hüfte mit vollen drei Sätzen.
+ * Gespart wird über die Zahl der Übungen und kürzere Pausen (`shortRestSec`), nicht
+ * über die Sätze — so bekommen die wichtigsten Übungen denselben Reiz wie sonst.
  */
 export const MAIN_WORKOUT_KEY = 'GK'
 
@@ -40,8 +41,8 @@ export const WORKOUTS: WorkoutTemplate[] = [
     key: MAIN_WORKOUT_KEY,
     name: 'Ganzkörper',
     focus: 'Sprung, Zug, Druck, Knie, Hüfte, Wade, Adduktoren, Rumpf',
-    approxMinutes: 50,
-    shortApproxMinutes: 20,
+    approxMinutes: 52,
+    shortApproxMinutes: 25,
     warmup: [
       '20× Armkreisen vorwärts und rückwärts',
       '10× Schulterblätter im Hängen nach unten ziehen und wieder lösen',
@@ -60,12 +61,12 @@ export const WORKOUTS: WorkoutTemplate[] = [
       {
         exerciseKey: 'pullup',
         sets: 3,
-        shortSets: 2,
+        shortSets: 3,
         restSec: 120,
         shortRestSec: 75,
         note: 'Steht bewusst vor den Liegestützen: die limitierende Übung gehört an die frischeste Stelle.',
       },
-      { exerciseKey: 'pushup', sets: 3, shortSets: 2, restSec: 90, shortRestSec: 60 },
+      { exerciseKey: 'pushup', sets: 3, shortSets: 3, restSec: 90, shortRestSec: 60 },
       {
         exerciseKey: 'band_row',
         sets: 2,
@@ -76,15 +77,15 @@ export const WORKOUTS: WorkoutTemplate[] = [
       {
         exerciseKey: 'split_squat',
         sets: 3,
-        shortSets: 2,
+        shortSets: 3,
         restSec: 90,
         shortRestSec: 60,
         note: 'Vorgabe gilt je Bein',
       },
       {
         exerciseKey: 'nordic_curl',
-        sets: 2,
-        shortSets: 2,
+        sets: 3,
+        shortSets: 3,
         restSec: 90,
         shortRestSec: 60,
         note: 'Absenken betont langsam — das ist die eigentliche Übung. Schützt die Beinrückseite beim Sprinten. In den ersten zwei Wochen nur halbe Bewegung: erzeugt stärkeren Muskelkater als alles andere im Plan.',
@@ -305,7 +306,7 @@ const LEGACY_WORKOUTS: WorkoutTemplate[] = [
  * ist, dass es eine bewusste Auswahl ist und nicht einfach abgebrochen wurde.
  */
 export const SHORT_NOTE =
-  'Kurzform: Zug, Druck, Knie und Hüfte mit je zwei Sätzen und kürzeren Pausen — die vier ' +
+  'Kurzform: Zug, Druck, Knie und Hüfte mit vollen drei Sätzen und kürzeren Pausen — die vier ' +
   'Grundbewegungen, also das, was die Einheit vollständig macht. Sprünge, Rudern, Wade, ' +
   'Adduktoren und Rumpf entfallen. Das Aufwärmen wird nicht gekürzt.'
 

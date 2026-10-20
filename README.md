@@ -32,7 +32,7 @@ sie, wann es passt.
 
 **Ein festes Ganzkörper-Workout.** Bei 1–2 Einheiten pro Woche läuft jede Krafteinheit gleich
 ab: Sprung, Zug, Druck, Rudern, Knie, Hüfte, Wade, Adduktoren, Rumpf. Kurzform in rund
-20 Minuten mit den vier Grundbewegungen. Optional ein HIIT-Zirkel (Burpees, Sprünge,
+25 Minuten mit den vier Grundbewegungen. Optional ein HIIT-Zirkel (Burpees, Sprünge,
 Bergsteiger) mit Intervall-Timer, 40 s Belastung / 20 s Pause.
 
 **Geführtes Krafttraining.** Satz für Satz abhaken, Wiederholungen per Plus/Minus
@@ -75,16 +75,16 @@ Begründung und Quellen stehen in `src/domain/workouts.ts`.
 | Übung                    | Voll       | Kurz       |
 | ------------------------ | ---------- | ---------- |
 | Strecksprünge            | 3 Sätze    | –          |
-| Klimmzüge                | 3 Sätze    | 2 Sätze    |
-| Liegestütze              | 3 Sätze    | 2 Sätze    |
+| Klimmzüge                | 3 Sätze    | 3 Sätze    |
+| Liegestütze              | 3 Sätze    | 3 Sätze    |
 | Rudern mit Band im Sitzen | 2 Sätze   | –          |
-| Bulgarian Split Squat    | 3 Sätze    | 2 Sätze    |
-| Nordic Curls             | 2 Sätze    | 2 Sätze    |
+| Bulgarian Split Squat    | 3 Sätze    | 3 Sätze    |
+| Nordic Curls             | 3 Sätze    | 3 Sätze    |
 | Wadenheben einbeinig     | 2 Sätze    | –          |
 | Copenhagen Plank         | 2 Sätze    | –          |
 | Seitstütz                | 2 Sätze    | –          |
 | Dead Bug                 | 2 Sätze    | –          |
-| **Dauer**                | ca. 50 Min | ca. 20 Min |
+| **Dauer**                | ca. 52 Min | ca. 25 Min |
 
 In der Kurzform sind auch die Pausen kürzer (60–75 statt 90–120 Sekunden).
 
@@ -133,7 +133,7 @@ der Laufseite (Laufen).
 
 | Einheit | Voll | Kurz | Was wegfällt |
 | --- | --- | --- | --- |
-| Ganzkörper | 50 Min | 20 Min | Vier Grundbewegungen à 2 Sätze, kürzere Pausen |
+| Ganzkörper | 52 Min | 25 Min | Nur die vier Grundbewegungen, kürzere Pausen |
 | Kombi 4×4 | 62 Min | 28 Min | 4 × 4 Min → 10 × 30/30, vier statt sechs Sprints |
 | Kombi RSA | 58 Min | 26 Min | Intervallblock entfällt, Sprintteil bleibt |
 | Schiri-Intervalle | 50 Min | 26 Min | 2 × 8 statt 3 × 10 Wiederholungen |
