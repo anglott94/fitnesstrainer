@@ -76,13 +76,17 @@ const reservePercent = (bpm: number, hrMax: number, hrRest: number) =>
  * Ein 6-km-Test all-out dauert rund 30 Minuten und liegt damit praktisch auf der
  * anaeroben Schwelle — ein brauchbarer Anker. Die Faktoren sind gegen die
  * VDOT-Tabellen nach Daniels kalibriert (6 km in 30:00 entspricht etwa VDOT 39):
- * Schwelle 5:09 gegen Daniels 5:11, Intervall 4:45 gegen 4:46, locker 6:15–6:45
+ * Schwelle 5:09 gegen Daniels 5:11, Intervall 4:45 gegen 4:46, locker 6:00–7:00
  * gegen 6:11–6:49 pro Kilometer.
+ *
+ * Die Faktoren von Regeneration bis Schwelle schließen lückenlos aneinander an,
+ * genau wie die Pulsgrenzen. Sonst läge z. B. zwischen GA1 und GA2 ein Tempobereich,
+ * der zu keiner Zone gehört.
  */
 const PACE_FACTORS: Record<string, [number, number]> = {
-  regeneration: [1.35, 1.5],
-  grundlage: [1.25, 1.35],
-  grauzone: [1.08, 1.2],
+  regeneration: [1.4, 1.55],
+  grundlage: [1.2, 1.4],
+  grauzone: [1.05, 1.2],
   schwelle: [1.01, 1.05],
   intervall: [0.93, 0.97],
   kurzintervall: [0.88, 0.93],
@@ -102,16 +106,16 @@ const SPECS: ZoneSpec[] = [
   {
     key: 'regeneration',
     name: 'Regeneration',
-    garmin: 'Garmin Zone 2',
-    hrPercent: [0.6, 0.7],
+    garmin: 'Garmin Zone 1',
+    hrPercent: [0.5, 0.6],
     hasPace: true,
     purpose: 'Durchblutung fördern, ohne neue Ermüdung aufzubauen. Sicher unter LT1.',
   },
   {
     key: 'grundlage',
     name: 'Grundlage (GA1)',
-    garmin: 'Garmin Zone 3, unterer Teil',
-    hrPercent: [0.7, 0.78],
+    garmin: 'Garmin Zone 2 bis unterer Teil Zone 3',
+    hrPercent: [0.6, 0.78],
     hasPace: true,
     purpose:
       'Der eigentliche „Zone-2"-Bereich im physiologischen Sinn: unterhalb der ersten Laktatschwelle. Sprechtest entscheidet — ganze Sätze müssen gehen.',
