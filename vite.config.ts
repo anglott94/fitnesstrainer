@@ -23,9 +23,9 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Schiri-Trainer',
-        short_name: 'Schiri-Trainer',
-        description: 'Lauf- und Krafttraining für Schiedsrichter — offline, lokal, kostenlos',
+        name: 'Fitnesstrainer',
+        short_name: 'Fitnesstrainer',
+        description: 'Kraft- und Lauftraining, Laufen abgestimmt auf Schiedsrichter — offline, lokal, kostenlos',
         lang: 'de',
         // Muss zu --bg in styles.css passen, sonst zieht sich in der installierten
         // App eine sichtbare Kante zwischen Statusleiste und Seite.

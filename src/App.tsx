@@ -7,7 +7,6 @@ import Today from './pages/Today'
 import StrengthSessionPage from './pages/StrengthSessionPage'
 import RunDetail from './pages/RunDetail'
 import RunLog from './pages/RunLog'
-import MatchLog from './pages/MatchLog'
 import Progress from './pages/Progress'
 import Exercises from './pages/Exercises'
 import ExercisePicker from './pages/ExercisePicker'
@@ -33,7 +32,6 @@ export default function App() {
             <Route path="/kraft/:id" element={<StrengthSessionPage />} />
             <Route path="/lauf/:key" element={<RunDetail />} />
             <Route path="/lauf/:key/eintragen" element={<RunLog />} />
-            <Route path="/spiel/neu" element={<MatchLog />} />
             <Route path="/fortschritt" element={<Progress />} />
             <Route path="/uebungen" element={<Exercises />} />
             {/* Vor der :key-Route, sonst würde „auswahl" als Übungsschlüssel gelesen. */}

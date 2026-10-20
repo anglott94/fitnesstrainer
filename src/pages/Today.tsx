@@ -9,7 +9,7 @@ import {
   useZones,
 } from '../hooks/useAppData'
 import { formatHrRange, formatPaceRange, zoneByKey, type Zones } from '../domain/zones'
-import { getWorkout, resolveBlocks } from '../domain/workouts'
+import { getWorkout, HIIT_WORKOUT, resolveBlocks } from '../domain/workouts'
 import { getRun } from '../domain/runs'
 import {
   deleteStrengthSession,
@@ -175,7 +175,7 @@ export default function Today() {
             states={states}
             disabled={settings.disabledExercises}
             preferences={settings.exercisePreferences}
-            onStart={(isShort) => void beginStrength(nextWorkoutKey, isShort)}
+            onStart={(key, isShort) => void beginStrength(key, isShort)}
           />
         </>
       )}
@@ -266,16 +266,6 @@ export default function Today() {
         </>
       )}
 
-      <h2 className="section-title">Spielleitung</h2>
-      <Link to="/spiel/neu" className="card card-tight card-match card-button">
-        <div className="row-between">
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 620 }}>Spiel nachbereiten</div>
-            <div className="tiny dim">Positionierung und Disziplinkontrolle bewerten</div>
-          </div>
-          <span className="list-chevron">›</span>
-        </div>
-      </Link>
     </div>
   )
 }
@@ -370,18 +360,22 @@ function StrengthPreview({
   states: ReturnType<typeof useExerciseStates>
   disabled: string[]
   preferences: Record<string, string>
-  onStart: (isShort: boolean) => void
+  onStart: (workoutKey: string, isShort: boolean) => void
 }) {
-  const [short, setShort] = useState(false)
-  const workout = getWorkout(workoutKey)
+  const [mode, setMode] = useState<'full' | 'short' | 'hiit'>('full')
+  const hiit = mode === 'hiit'
+  const short = mode === 'short'
+  const main = getWorkout(workoutKey)
+  const workout = hiit ? HIIT_WORKOUT : main
   const blocks = resolveBlocks(workout, disabled, short, preferences)
-  const totalSets = blocks.reduce((n, b) => n + adjustSets(b.sets, isDeload), 0)
+  const totalSets = blocks.reduce((n, b) => n + (hiit ? b.sets : adjustSets(b.sets, isDeload)), 0)
   const minutes = short ? workout.shortApproxMinutes : workout.approxMinutes
   const dropped = workout.blocks.length - blocks.length
+  const rounds = Math.max(0, ...blocks.map((b) => b.sets))
 
   return (
     <div className="card card-accent">
-      <span className="hero-label">Krafttraining</span>
+      <span className="hero-label">{hiit ? 'Alternative: HIIT' : 'Krafttraining'}</span>
       <h3 className="hero-title">{workout.name.replace(/^Workout [AB] — /, '')}</h3>
 
       <div className="hero-meta">
@@ -391,25 +385,36 @@ function StrengthPreview({
         <span>
           <strong>{blocks.length}</strong> <span className="dim">Übungen</span>
         </span>
-        <span>
-          <strong>{totalSets}</strong> <span className="dim">Sätze</span>
-        </span>
+        {hiit ? (
+          <span>
+            <strong>{rounds}</strong> <span className="dim">Runden</span>
+          </span>
+        ) : (
+          <span>
+            <strong>{totalSets}</strong> <span className="dim">Sätze</span>
+          </span>
+        )}
       </div>
 
       <div className="chip-row" style={{ marginTop: 14 }}>
-        <button className="chip" data-active={!short} onClick={() => setShort(false)}>
-          Voll · {workout.approxMinutes} Min
+        <button className="chip" data-active={mode === 'full'} onClick={() => setMode('full')}>
+          Voll · {main.approxMinutes} Min
         </button>
-        <button className="chip" data-active={short} onClick={() => setShort(true)}>
-          Kurz · {workout.shortApproxMinutes} Min
+        <button className="chip" data-active={short} onClick={() => setMode('short')}>
+          Kurz · {main.shortApproxMinutes} Min
+        </button>
+        <button className="chip" data-active={hiit} onClick={() => setMode('hiit')}>
+          HIIT · {HIIT_WORKOUT.approxMinutes} Min
         </button>
       </div>
 
       <div className="preview-grid">
         {blocks.map((block) => {
           const ex = getExercise(block.exerciseKey)
-          const target = adjustTarget(targetFor(block.exerciseKey, states), isDeload, ex.unit)
-          const sets = adjustSets(block.sets, isDeload)
+          const target = hiit
+            ? (workout.interval?.workSec ?? 40)
+            : adjustTarget(targetFor(block.exerciseKey, states), isDeload, ex.unit)
+          const sets = hiit ? block.sets : adjustSets(block.sets, isDeload)
           return (
             <Fragment key={block.exerciseKey}>
               <span className="name">{ex.name}</span>
@@ -428,8 +433,19 @@ function StrengthPreview({
         </p>
       )}
 
-      <button className="btn btn-primary btn-block btn-lg" onClick={() => onStart(short)}>
-        {short ? 'Kurzform starten' : 'Training starten'}
+      {hiit && (
+        <p className="tiny dim" style={{ margin: '-6px 0 14px' }}>
+          {workout.interval?.workSec}s Belastung, {workout.interval?.restSec}s Pause, Übung für
+          Übung im Zirkel. Zählt als Einheit der Woche, ersetzt aber kein Krafttraining — ohne
+          Steigerung der Vorgaben.
+        </p>
+      )}
+
+      <button
+        className="btn btn-primary btn-block btn-lg"
+        onClick={() => onStart(workout.key, short)}
+      >
+        {hiit ? 'HIIT starten' : short ? 'Kurzform starten' : 'Training starten'}
       </button>
     </div>
   )

@@ -23,6 +23,7 @@ import { RestTimerBar } from '../components/RestTimerBar'
 import { useWriteGuard } from '../components/ErrorToast'
 import { IconCheck, IconChevronDown, IconMinus, IconPlus } from '../components/icons'
 import { formatDuration } from '../lib/date'
+import HiitSession from './HiitSession'
 import { playSetDone, unlockAudio, vibrate } from '../lib/feedback'
 
 interface Group {
@@ -93,7 +94,7 @@ export default function StrengthSessionPage() {
       const source = exact ?? byPattern
       return {
         exerciseKey: key,
-        restSec: source?.restSec ?? 90,
+        restSec: (session.short ? source?.shortRestSec : undefined) ?? source?.restSec ?? 90,
         note: exact?.note,
         sets: session.sets
           .filter((s) => s.exerciseKey === key)
@@ -121,6 +122,9 @@ export default function StrengthSessionPage() {
   if (session === null || !session) return <NotFound />
 
   const template = getWorkout(session.templateKey)
+  // Zirkel nach Zeit hat einen eigenen Ablauf mit Intervall-Timer.
+  if (template.interval) return <HiitSession session={session} template={template} />
+
   const doneCount = session.sets.filter((s) => s.done).length
   const totalCount = session.sets.length
   const progress = totalCount === 0 ? 0 : doneCount / totalCount
@@ -566,7 +570,7 @@ function ExerciseCard({
 
 // ---------------------------------------------------------------------------
 
-function FinishForm({
+export function FinishForm({
   doneCount,
   totalCount,
   elapsed,

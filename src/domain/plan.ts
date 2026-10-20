@@ -1,5 +1,5 @@
 import { daysBetween, currentWeekKey, todayISO } from '../lib/date'
-import { WORKOUTS } from './workouts'
+import { MAIN_WORKOUT_KEY } from './workouts'
 import type { Unit } from './types'
 
 /**
@@ -49,8 +49,6 @@ export function buildWeekPlan(opts: {
   startDate: string
   runsPerWeek: number
   strengthPerWeek: number
-  /** Anzahl bisher abgeschlossener Krafteinheiten — steuert den A/B-Wechsel. */
-  completedStrengthCount: number
 }): WeekPlan {
   const elapsedDays = Math.max(0, daysBetween(opts.startDate, todayISO()))
   const weekIndex = Math.floor(elapsedDays / 7)
@@ -60,11 +58,8 @@ export function buildWeekPlan(opts: {
   const rotation = RUN_ROTATION[blockWeekIndex]
   const runKeys = rotation.slice(0, Math.max(1, Math.min(opts.runsPerWeek, rotation.length)))
 
-  const workoutKeys: string[] = []
-  for (let i = 0; i < Math.max(1, opts.strengthPerWeek); i++) {
-    const idx = (opts.completedStrengthCount + i) % WORKOUTS.length
-    workoutKeys.push(WORKOUTS[idx].key)
-  }
+  // Immer dasselbe Ganzkörper-Workout — siehe workouts.ts.
+  const workoutKeys = Array.from({ length: Math.max(1, opts.strengthPerWeek) }, () => MAIN_WORKOUT_KEY)
 
   return {
     weekKey: currentWeekKey(),

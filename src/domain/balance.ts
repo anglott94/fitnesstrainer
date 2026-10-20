@@ -1,7 +1,7 @@
 import type { Exercise } from './types'
 import { EXERCISES, exercisesForPattern, getExercise } from './exercises'
 import { PATTERNS, type MovementPattern } from './patterns'
-import { resolveBlocks, WORKOUTS } from './workouts'
+import { HIIT_WORKOUT, resolveBlocks, WORKOUTS } from './workouts'
 
 /**
  * Prüft, ob die gewählte Übungsauswahl noch ein vollständiges Training ergibt.
@@ -12,7 +12,7 @@ import { resolveBlocks, WORKOUTS } from './workouts'
  *     ein Fehler, empfohlene ein Hinweis. Damit fällt kein ganzer Körperbereich
  *     unbemerkt aus dem Plan.
  *  2. **Stimmt das Verhältnis von Zug zu Druck?** Gezählt werden die tatsächlichen
- *     Wochensätze beider Workouts, nicht die Übungen — vier Sätze Liegestütze wiegen
+ *     Sätze einer Einheit, nicht die Übungen — vier Sätze Liegestütze wiegen
  *     schwerer als zwei Sätze Rudern.
  *
  * Zur Einordnung: Mindestens so viele Zug- wie Drucksätze zu planen, ist etablierte
@@ -27,7 +27,7 @@ export interface PatternStatus {
   all: Exercise[]
   active: Exercise[]
   covered: boolean
-  /** Sätze pro Woche über beide Workouts hinweg, mit der aktuellen Auswahl. */
+  /** Sätze pro Einheit, mit der aktuellen Auswahl. */
   weeklySets: number
 }
 
@@ -46,7 +46,7 @@ export interface BalanceReport {
   ok: boolean
 }
 
-/** Wochensätze je Bewegungsmuster über beide Workouts, nach Auflösung der Auswahl. */
+/** Sätze je Bewegungsmuster pro Einheit, nach Auflösung der Auswahl. */
 function weeklySetsByPattern(
   disabled: readonly string[],
   preferences: Record<string, string>,
@@ -121,7 +121,7 @@ export function checkBalance(
   if (pushSets > 0 && pullSets < pushSets) {
     problems.push({
       severity: 'hinweis',
-      text: `Aktuell ${pushSets} Druck- gegen ${pullSets} Zugsätze pro Woche. Mindestens so viele Zug- wie Drucksätze sind sinnvoll: Die Muskeln, die das Schulterblatt zurückziehen, arbeiten beim Drücken kaum mit. Eine Zugübung mehr aktivieren oder eine Druckübung abwählen.`,
+      text: `Aktuell ${pushSets} Druck- gegen ${pullSets} Zugsätze pro Einheit. Mindestens so viele Zug- wie Drucksätze sind sinnvoll: Die Muskeln, die das Schulterblatt zurückziehen, arbeiten beim Drücken kaum mit. Eine Zugübung mehr aktivieren oder eine Druckübung abwählen.`,
     })
   }
 
@@ -154,7 +154,7 @@ export function scheduledExerciseKeys(
   preferences: Record<string, string> = {},
 ): Set<string> {
   const keys = new Set<string>()
-  for (const workout of WORKOUTS) {
+  for (const workout of [...WORKOUTS, HIIT_WORKOUT]) {
     for (const block of resolveBlocks(workout, disabled, false, preferences)) {
       keys.add(block.exerciseKey)
     }

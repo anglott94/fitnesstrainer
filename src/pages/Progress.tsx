@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { BarChart, LineChart } from '../components/Chart'
 import { EXERCISES, getExercise } from '../domain/exercises'
 import { formatHrRange, formatPaceRange, formatPaceSec } from '../domain/zones'
@@ -7,7 +6,6 @@ import {
   useBodyLogs,
   useDoneStrengthSessions,
   useExerciseStates,
-  useMatches,
   useRunSessions,
   useSettings,
   useZones,
@@ -221,8 +219,6 @@ export default function Progress() {
         </>
       )}
 
-      <MatchSection />
-
       <h2 className="section-title">Deine Zonen</h2>
 
       {!hasOwnPerformanceData(settings) && (
@@ -296,113 +292,6 @@ export default function Progress() {
   )
 }
 
-/**
- * Die beiden Fokuspunkte aus den Beobachterbögen als Verlauf. Die Spieldistanz steht
- * bewusst daneben: Sie ist der objektive Gegenpol zur Selbsteinschätzung — wer sich
- * bei der Positionierung besser einschätzt, sollte im Spiel auch mehr laufen.
- */
-function MatchSection() {
-  const matches = useMatches()
-  const [metric, setMetric] = useState<'positioning' | 'discipline' | 'distance'>('positioning')
-
-  if (matches.length === 0) {
-    return (
-      <>
-        <h2 className="section-title">Spielleitung</h2>
-        <div className="card">
-          <p className="small muted" style={{ marginTop: 0 }}>
-            Noch kein Spiel nachbereitet. Nach dem nächsten Spiel Positionierung und
-            Disziplinkontrolle bewerten — ab drei bis vier Einträgen wird ein Verlauf sichtbar.
-          </p>
-          <Link to="/spiel/neu" className="btn btn-ghost btn-block btn-sm">
-            Spiel nachbereiten
-          </Link>
-        </div>
-      </>
-    )
-  }
-
-  const series = matches
-    .map((m) => ({
-      label: formatDateShort(m.date),
-      value:
-        metric === 'positioning'
-          ? m.positioning
-          : metric === 'discipline'
-            ? m.discipline
-            : (m.distanceKm ?? 0),
-    }))
-    .filter((p) => metric !== 'distance' || p.value > 0)
-
-  const avg = (pick: (m: (typeof matches)[number]) => number) =>
-    Math.round((matches.reduce((sum, m) => sum + pick(m), 0) / matches.length) * 10) / 10
-
-  const withDistance = matches.filter((m) => m.distanceKm)
-
-  return (
-    <>
-      <h2 className="section-title">Spielleitung</h2>
-
-      <div className="stat-grid" style={{ marginBottom: 12 }}>
-        <div className="stat">
-          <div className="stat-value">{matches.length}</div>
-          <div className="stat-label">Spiele</div>
-        </div>
-        <div className="stat">
-          <div className="stat-value">{avg((m) => m.positioning)}</div>
-          <div className="stat-label">⌀ Positionierung</div>
-        </div>
-        <div className="stat">
-          <div className="stat-value">{avg((m) => m.discipline)}</div>
-          <div className="stat-label">⌀ Disziplin</div>
-        </div>
-        {withDistance.length > 0 && (
-          <div className="stat">
-            <div className="stat-value">
-              {Math.round(
-                (withDistance.reduce((s, m) => s + (m.distanceKm ?? 0), 0) / withDistance.length) *
-                  10,
-              ) / 10}
-            </div>
-            <div className="stat-label">⌀ km im Spiel</div>
-          </div>
-        )}
-      </div>
-
-      <div className="card">
-        <div className="chip-row" style={{ marginBottom: 14 }}>
-          <button
-            className="chip"
-            data-active={metric === 'positioning'}
-            onClick={() => setMetric('positioning')}
-          >
-            Positionierung
-          </button>
-          <button
-            className="chip"
-            data-active={metric === 'discipline'}
-            onClick={() => setMetric('discipline')}
-          >
-            Disziplin
-          </button>
-          <button
-            className="chip"
-            data-active={metric === 'distance'}
-            onClick={() => setMetric('distance')}
-          >
-            Distanz
-          </button>
-        </div>
-        <LineChart
-          data={series}
-          color={metric === 'distance' ? 'var(--run)' : 'var(--warn)'}
-          unit={metric === 'distance' ? ' km' : '/5'}
-          emptyHint="Für diese Auswahl liegen noch keine Werte vor."
-        />
-      </div>
-    </>
-  )
-}
 
 /** Grenzen, außerhalb derer ein Tippfehler wahrscheinlicher ist als der Wert. */
 const WEIGHT_MIN_KG = 30

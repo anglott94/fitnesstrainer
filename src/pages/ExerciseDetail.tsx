@@ -4,7 +4,7 @@ import { getPattern } from '../domain/patterns'
 import { defaultLevel, ladderFor } from '../domain/assistance'
 import { setExerciseTarget } from '../db/repo'
 import { IconMinus, IconPlus } from '../components/icons'
-import { WORKOUTS } from '../domain/workouts'
+import { HIIT_WORKOUT, WORKOUTS } from '../domain/workouts'
 import { useDoneStrengthSessions, useExerciseStates } from '../hooks/useAppData'
 import { LineChart } from '../components/Chart'
 import { bestSetSeries, personalBest } from '../lib/stats'
@@ -37,8 +37,10 @@ export default function ExerciseDetail() {
   const best = personalBest(sessions, key)
   const series = bestSetSeries(sessions, key)
   const unit = ex.unit === 'seconds' ? 's' : ''
-  const blocks = WORKOUTS.flatMap((w) =>
-    w.blocks.filter((b) => b.exerciseKey === key).map((b) => ({ workout: w.name, ...b })),
+  const blocks = [...WORKOUTS, HIIT_WORKOUT].flatMap((w) =>
+    w.blocks
+      .filter((b) => b.exerciseKey === key)
+      .map((b) => ({ workout: w.name, interval: w.interval, ...b })),
   )
 
   return (
@@ -247,7 +249,9 @@ export default function ExerciseDetail() {
                 <div className="row-between">
                   <span className="small">{b.workout}</span>
                   <span className="tiny dim nowrap">
-                    {b.sets} Sätze · {b.restSec}s Pause
+                    {b.interval
+                      ? `${b.sets} Runden · ${b.interval.workSec}s / ${b.interval.restSec}s`
+                      : `${b.sets} Sätze · ${b.restSec}s Pause`}
                   </span>
                 </div>
               </div>

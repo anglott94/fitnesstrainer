@@ -57,6 +57,8 @@ export interface TemplateBlock {
   /** Sätze in der Kurzform. 0 bedeutet: Übung entfällt, wenn die Zeit knapp ist. */
   shortSets: number
   restSec: number
+  /** Pause in der Kurzform, falls kürzer als `restSec`. */
+  shortRestSec?: number
   note?: string
   /**
    * Bewegungsmuster, die für diesen Block ebenfalls in Frage kommen, wenn das
@@ -72,6 +74,11 @@ export interface WorkoutTemplate {
   focus: string
   approxMinutes: number
   shortApproxMinutes: number
+  /**
+   * Gesetzt bei Zirkeltraining nach Zeit (HIIT): Belastung und Pause in Sekunden,
+   * dazu die Pause nach jeder vollen Runde. `sets` eines Blocks ist dann die Rundenzahl.
+   */
+  interval?: { workSec: number; restSec: number; roundRestSec: number }
   warmup: string[]
   blocks: TemplateBlock[]
   cooldown: string[]

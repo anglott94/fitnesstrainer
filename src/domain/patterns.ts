@@ -137,6 +137,13 @@ export const PATTERNS: MovementPattern[] = [
     why: 'Die dritte Stabilisationsrichtung. Nice-to-have — die beiden anderen Rumpfmuster decken das Wesentliche ab.',
     requirement: 'optional',
   },
+  {
+    key: 'conditioning',
+    name: 'Kondition (HIIT)',
+    covers: 'Ganzkörper unter hoher Herzfrequenz',
+    why: 'Nur für den optionalen HIIT-Zirkel. Trainiert eher das Herz-Kreislauf-System als die Muskulatur und steht deshalb nicht im Krafttraining.',
+    requirement: 'optional',
+  },
 ]
 
 export const PATTERN_BY_KEY: Record<string, MovementPattern> = Object.fromEntries(

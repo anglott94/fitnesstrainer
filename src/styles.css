@@ -1012,6 +1012,54 @@ h4 {
   font-size: 0.86rem;
 }
 
+/* --- HIIT-Zirkel -------------------------------------------------------- */
+
+.hiit-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 0 20px;
+}
+
+.hiit-ring {
+  position: relative;
+  width: 210px;
+  height: 210px;
+}
+
+.hiit-ring svg {
+  transform: rotate(-90deg);
+  display: block;
+}
+
+.hiit-ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 4rem;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+
+.hiit-phase {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  min-height: 1em;
+}
+
+.hiit-title {
+  margin: 4px 0 0;
+  font-size: 1.6rem;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
 /* --- Diagramme ----------------------------------------------------------- */
 
 .chart {

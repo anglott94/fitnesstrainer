@@ -1,24 +1,23 @@
 import { useMemo, useState } from 'react'
-import { useDoneStrengthSessions, useMatches, useRunSessions } from '../hooks/useAppData'
-import { deleteMatch, deleteRun, deleteStrengthSession } from '../db/repo'
+import { useDoneStrengthSessions, useRunSessions } from '../hooks/useAppData'
+import { deleteRun, deleteStrengthSession } from '../db/repo'
 import { getExercise } from '../domain/exercises'
+import { getWorkout } from '../domain/workouts'
 import { sessionVolume } from '../domain/progression'
-import type { Match, RunSession, SetLog, StrengthSession } from '../domain/types'
+import type { RunSession, SetLog, StrengthSession } from '../domain/types'
 import { levelFor } from '../domain/assistance'
 import { formatDateLong, formatDuration, formatPace, formatRelative, weekKey } from '../lib/date'
-import { IconRun, IconStrength, IconTrash, IconWhistle } from '../components/icons'
+import { IconRun, IconStrength, IconTrash } from '../components/icons'
 import { useWriteGuard } from '../components/ErrorToast'
 
 type Entry =
   | { kind: 'strength'; date: string; sortKey: number; session: StrengthSession }
   | { kind: 'run'; date: string; sortKey: number; run: RunSession }
-  | { kind: 'match'; date: string; sortKey: number; match: Match }
 
 export default function History() {
   const strength = useDoneStrengthSessions()
   const runs = useRunSessions()
-  const matches = useMatches()
-  const [filter, setFilter] = useState<'all' | 'strength' | 'run' | 'match'>('all')
+  const [filter, setFilter] = useState<'all' | 'strength' | 'run'>('all')
   const [openId, setOpenId] = useState<string | null>(null)
   const guard = useWriteGuard()
 
@@ -31,17 +30,11 @@ export default function History() {
         session: s,
       })),
       ...runs.map((r) => ({ kind: 'run' as const, date: r.date, sortKey: r.createdAt, run: r })),
-      ...matches.map((m) => ({
-        kind: 'match' as const,
-        date: m.date,
-        sortKey: m.createdAt,
-        match: m,
-      })),
     ]
     return all
       .filter((e) => filter === 'all' || e.kind === filter)
       .sort((a, b) => b.sortKey - a.sortKey)
-  }, [strength, runs, matches, filter])
+  }, [strength, runs, filter])
 
   const grouped = useMemo(() => {
     const map = new Map<string, Entry[]>()
@@ -70,9 +63,6 @@ export default function History() {
         </button>
         <button className="chip" data-active={filter === 'run'} onClick={() => setFilter('run')}>
           Laufen
-        </button>
-        <button className="chip" data-active={filter === 'match'} onClick={() => setFilter('match')}>
-          Spiele
         </button>
       </div>
 
@@ -104,7 +94,6 @@ export default function History() {
                     <span className="row" style={{ minWidth: 0 }}>
                       {entry.kind === 'strength' && <IconStrength size={18} className="muted" />}
                       {entry.kind === 'run' && <IconRun size={18} className="muted" />}
-                      {entry.kind === 'match' && <IconWhistle size={18} className="muted" />}
                       <span style={{ minWidth: 0 }}>
                         <span style={{ fontWeight: 600, display: 'block' }}>
                           {entryTitle(entry)}
@@ -125,7 +114,6 @@ export default function History() {
                     >
                       {entry.kind === 'strength' && <StrengthDetail session={entry.session} />}
                       {entry.kind === 'run' && <RunDetailRow run={entry.run} />}
-                      {entry.kind === 'match' && <MatchDetailRow match={entry.match} />}
                       <button
                         className="btn btn-danger btn-sm"
                         style={{ marginTop: 14 }}
@@ -134,8 +122,7 @@ export default function History() {
                           void guard(() => {
                             if (entry.kind === 'strength')
                               return deleteStrengthSession(entry.session.id!)
-                            if (entry.kind === 'run') return deleteRun(entry.run.id!)
-                            return deleteMatch(entry.match.id!)
+                            return deleteRun(entry.run.id!)
                           })
                           setOpenId(null)
                         }}
@@ -156,20 +143,23 @@ export default function History() {
 
 function entryId(entry: Entry): string {
   if (entry.kind === 'strength') return `s${entry.session.id}`
-  if (entry.kind === 'run') return `r${entry.run.id}`
-  return `m${entry.match.id}`
+  return `r${entry.run.id}`
 }
 
 function entryTitle(entry: Entry): string {
   if (entry.kind === 'strength') return entry.session.name
-  if (entry.kind === 'run') return entry.run.name
-  return entry.match.competition
+  return entry.run.name
 }
 
 function entrySubtitle(entry: Entry): string {
-  if (entry.kind === 'strength') return ` · ${sessionVolume(entry.session)} Wdh`
-  if (entry.kind === 'run') return entry.run.distanceKm ? ` · ${entry.run.distanceKm} km` : ''
-  return ` · Position ${entry.match.positioning}/5 · Disziplin ${entry.match.discipline}/5`
+  if (entry.kind === 'strength') {
+    // Beim Zirkel nach Zeit gibt es keine Wiederholungen, nur absolvierte Intervalle.
+    if (getWorkout(entry.session.templateKey).interval) {
+      return ` · ${entry.session.sets.filter((s) => s.done).length} Intervalle`
+    }
+    return ` · ${sessionVolume(entry.session)} Wdh`
+  }
+  return entry.run.distanceKm ? ` · ${entry.run.distanceKm} km` : ''
 }
 
 function StrengthDetail({ session }: { session: StrengthSession }) {
@@ -226,53 +216,6 @@ function StrengthDetail({ session }: { session: StrengthSession }) {
   )
 }
 
-function MatchDetailRow({ match }: { match: Match }) {
-  return (
-    <>
-      <div className="stat-grid" style={{ marginBottom: 10 }}>
-        <div className="stat">
-          <div className="stat-value">{match.positioning}/5</div>
-          <div className="stat-label">Positionierung</div>
-        </div>
-        <div className="stat">
-          <div className="stat-value">{match.discipline}/5</div>
-          <div className="stat-label">Disziplinkontrolle</div>
-        </div>
-        {match.distanceKm != null && (
-          <div className="stat">
-            <div className="stat-value">{match.distanceKm}</div>
-            <div className="stat-label">Kilometer</div>
-          </div>
-        )}
-        {match.avgHr != null && (
-          <div className="stat">
-            <div className="stat-value">{match.avgHr}</div>
-            <div className="stat-label">⌀ Puls</div>
-          </div>
-        )}
-        {match.maxHr != null && (
-          <div className="stat">
-            <div className="stat-value">{match.maxHr}</div>
-            <div className="stat-label">Max Puls</div>
-          </div>
-        )}
-      </div>
-      {match.keyScene && (
-        <>
-          <strong className="tiny dim">Schwierigste Szene</strong>
-          <p className="small muted" style={{ margin: '2px 0 8px' }}>
-            {match.keyScene}
-          </p>
-        </>
-      )}
-      {match.notes && (
-        <p className="small muted" style={{ margin: 0 }}>
-          „{match.notes}"
-        </p>
-      )}
-    </>
-  )
-}
 
 function RunDetailRow({ run }: { run: RunSession }) {
   return (

@@ -1,6 +1,6 @@
 import type { Exercise, ExerciseState, SetLog, StrengthSession, WorkoutTemplate } from './types'
 import { getExercise } from './exercises'
-import { resolveBlocks } from './workouts'
+import { getWorkout, resolveBlocks } from './workouts'
 import { adjustSets, adjustTarget } from './plan'
 import { defaultLevel, levelFor, nextHarderLevel } from './assistance'
 
@@ -36,6 +36,27 @@ export function buildSets(
   preferences: Record<string, string> = {},
 ): SetLog[] {
   const sets: SetLog[] = []
+
+  // Zirkel nach Zeit: Runde für Runde durch alle Übungen, Vorgabe ist die
+  // Belastungszeit. Keine Entlastungs-Anpassung — die Einheit ist ohnehin optional.
+  if (template.interval) {
+    const blocks = resolveBlocks(template, disabled, isShort, preferences)
+    const rounds = Math.max(0, ...blocks.map((b) => b.sets))
+    for (let round = 0; round < rounds; round++) {
+      for (const block of blocks) {
+        if (round >= block.sets) continue
+        sets.push({
+          exerciseKey: block.exerciseKey,
+          setIndex: round,
+          target: template.interval.workSec,
+          actual: null,
+          done: false,
+        })
+      }
+    }
+    return sets
+  }
+
   for (const block of resolveBlocks(template, disabled, isShort, preferences)) {
     const base = targetFor(block.exerciseKey, states)
     const target = adjustTarget(base, isDeload, getExercise(block.exerciseKey).unit)
@@ -84,6 +105,10 @@ export function evaluateSession(
   const byKey = new Map(states.map((s) => [s.key, s]))
   const changes: ProgressionChange[] = []
   const nextStates: ExerciseState[] = []
+
+  // Zirkel nach Zeit (HIIT) steigert nichts: Die Vorgabe ist die Belastungszeit,
+  // mehr Leistung zeigt sich in mehr Wiederholungen innerhalb dieser Zeit.
+  if (getWorkout(session.templateKey).interval) return { nextStates, changes }
 
   const exerciseKeys = [...new Set(session.sets.map((s) => s.exerciseKey))]
 

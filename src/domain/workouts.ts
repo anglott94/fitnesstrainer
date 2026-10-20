@@ -2,45 +2,178 @@ import type { TemplateBlock, WorkoutTemplate } from './types'
 import { exercisesForPattern, getExercise } from './exercises'
 
 /**
- * Zwei Ganzkörper-Workouts im Wechsel (A, B, A, B ...).
+ * Ein festes Ganzkörper-Workout, das jedes Mal gleich abläuft.
  *
- * ── Warum kein Split ───────────────────────────────────────────────────────
+ * ── Warum immer dasselbe ──────────────────────────────────────────────────
  *
- * Jede Einheit enthält einen Druck, einen Zug, eine knie- und eine hüftdominante
- * Beinübung. Physiologisch wäre ein Split gleichwertig: Sobald das Wochenvolumen
- * gleich bleibt, macht es für Kraft und Muskelaufbau keinen belegbaren Unterschied,
- * ob eine Übung einmal mit vier Sätzen oder zweimal mit zwei Sätzen trainiert wird
- * (Schoenfeld et al., J Sports Sci 2019).
+ * Bei ein bis zwei Einheiten pro Woche bringt ein Wechsel zwischen verschiedenen
+ * Workouts vor allem eines: Jede Übung kommt nur alle ein bis zwei Wochen dran, und
+ * fällt eine Einheit aus, sind es drei. Für Fortschritt zählt aber, dieselbe Übung
+ * regelmäßig zu wiederholen. Ein einziges vollständiges Workout ist deshalb bei so
+ * wenig Einheiten die robustere Wahl — jede Einheit trainiert alles.
  *
- * Der Grund ist ein organisatorischer: Bei ein bis zwei Einheiten pro Woche fällt
- * regelmäßig eine aus. Mit einem Split hieße das, in dieser Woche gar nicht gezogen
- * oder gar nicht gedrückt zu haben — bei zwei geplanten Einheiten mit 50 Prozent
- * Wahrscheinlichkeit. Vollständige Einheiten machen den Plan gegen Ausfälle robust.
- *
- * Gegen das Zusammenlegen spricht auch nichts: Druck und Zug sind Gegenspieler und
- * ermüden sich gegenseitig kaum. Wer Zeit sparen will, kann Klimmzüge und
- * Liegestütze im Wechsel mit kürzerer Pause ausführen.
+ * Physiologisch spricht nichts dagegen: Sobald das Wochenvolumen gleich bleibt, macht
+ * es für Kraft und Muskelaufbau keinen belegbaren Unterschied, wie es sich auf die
+ * Einheiten verteilt (Schoenfeld et al., J Sports Sci 2019).
  *
  * ── Reihenfolge ────────────────────────────────────────────────────────────
  *
  * 1. Sprünge — brauchen ein ausgeruhtes Nervensystem, kosten kaum Kraft.
  * 2. Zugbewegung — die limitierende Übung, deshalb vor dem Drücken.
- * 3. Druckbewegung, dann Beine, dann Vorsorge und Rumpf.
+ * 3. Druck und waagerechtes Ziehen als Gegenspieler direkt dahinter.
+ * 4. Beine knie- und hüftdominant, dann Wade, Adduktoren und Rumpf.
  *
- * Workout A enthält zusätzlich zwei Sätze Rudern direkt hinter den Liegestützen.
- * Grund: Der Klimmzug ist der Gegenspieler zum Überkopfdrücken, nicht zum Liegestütz.
- * Die Muskeln, die die Schulterblätter zusammenziehen (Rautenmuskeln, mittlerer
- * Trapez), arbeiten beim Klimmzug nur wenig und beim waagerechten Ziehen stark.
- * Ohne diese zwei Sätze hätte eine Woche, in der nur Workout A zustande kommt,
- * Drücken ohne jeden waagerechten Zug.
+ * Das Rudern steht im Plan, obwohl schon Klimmzüge drin sind: Der Klimmzug ist der
+ * Gegenspieler zum Überkopfdrücken, nicht zum Liegestütz. Die Muskeln, die die
+ * Schulterblätter zusammenziehen, arbeiten beim waagerechten Ziehen deutlich stärker.
  *
- * ── Kurzform ───────────────────────────────────────────────────────────────
+ * ── Kurzform (rund 20 Minuten) ─────────────────────────────────────────────
  *
- * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Erhalten
- * bleiben die vier Grundmuster plus der Sprung — Vorsorge- und Rumpfarbeit fällt
- * zuerst weg, weil sie sich am ehesten nebenbei nachholen lässt.
+ * `shortSets: 0` heißt: Diese Übung entfällt, wenn die Zeit knapp ist. Es bleiben
+ * die vier Grundbewegungen Zug, Druck, Knie und Hüfte mit je zwei Sätzen und
+ * kürzeren Pausen (`shortRestSec`). Sprünge, Vorsorge- und Rumpfarbeit fallen weg.
  */
+export const MAIN_WORKOUT_KEY = 'GK'
+
 export const WORKOUTS: WorkoutTemplate[] = [
+  {
+    key: MAIN_WORKOUT_KEY,
+    name: 'Ganzkörper',
+    focus: 'Sprung, Zug, Druck, Knie, Hüfte, Wade, Adduktoren, Rumpf',
+    approxMinutes: 50,
+    shortApproxMinutes: 20,
+    warmup: [
+      '20× Armkreisen vorwärts und rückwärts',
+      '10× Schulterblätter im Hängen nach unten ziehen und wieder lösen',
+      '15 Kniebeugen ohne Gewicht, langsam und tief',
+      '10 Hüftbrücken beidbeinig',
+      '30 Sekunden auf der Stelle laufen mit Kniehub',
+    ],
+    blocks: [
+      {
+        exerciseKey: 'cmj',
+        sets: 3,
+        shortSets: 0,
+        restSec: 60,
+        note: 'Jeder Sprung maximal — lieber weniger als unsauber. Diesen Block überspringen, wenn du heute schon eine Kombi-Einheit mit Sprints gelaufen bist.',
+      },
+      {
+        exerciseKey: 'pullup',
+        sets: 3,
+        shortSets: 2,
+        restSec: 120,
+        shortRestSec: 75,
+        note: 'Steht bewusst vor den Liegestützen: die limitierende Übung gehört an die frischeste Stelle.',
+      },
+      { exerciseKey: 'pushup', sets: 3, shortSets: 2, restSec: 90, shortRestSec: 60 },
+      {
+        exerciseKey: 'row_inverted',
+        sets: 2,
+        shortSets: 0,
+        restSec: 75,
+        note: 'Der direkte Gegenspieler zum Liegestütz: zieht die Schulterblätter wieder zusammen, was der Klimmzug nur wenig tut.',
+      },
+      {
+        exerciseKey: 'split_squat',
+        sets: 3,
+        shortSets: 2,
+        restSec: 90,
+        shortRestSec: 60,
+        note: 'Vorgabe gilt je Bein',
+      },
+      {
+        exerciseKey: 'nordic_curl',
+        sets: 2,
+        shortSets: 2,
+        restSec: 90,
+        shortRestSec: 60,
+        note: 'Absenken betont langsam — das ist die eigentliche Übung. Schützt die Beinrückseite beim Sprinten. In den ersten zwei Wochen nur halbe Bewegung: erzeugt stärkeren Muskelkater als alles andere im Plan.',
+      },
+      {
+        exerciseKey: 'calf_raise',
+        sets: 2,
+        shortSets: 0,
+        restSec: 45,
+        note: 'Vorgabe gilt je Bein — betont langsam ablassen',
+      },
+      {
+        exerciseKey: 'copenhagen',
+        sets: 2,
+        shortSets: 0,
+        restSec: 45,
+        note: 'Sekunden je Seite. Vorsorge für die Leiste bei vielen Richtungswechseln.',
+        altPatterns: ['abduction'],
+      },
+      {
+        exerciseKey: 'side_plank',
+        sets: 2,
+        shortSets: 0,
+        restSec: 30,
+        note: 'Sekunden je Seite',
+        altPatterns: ['core_antirotation'],
+      },
+      {
+        exerciseKey: 'dead_bug',
+        sets: 2,
+        shortSets: 0,
+        restSec: 30,
+        note: 'Wiederholungen je Seite gezählt',
+        altPatterns: ['core_antirotation'],
+      },
+    ],
+    cooldown: [
+      '30 Sekunden Wadendehnung je Seite an der Wand',
+      '30 Sekunden Hüftbeuger-Dehnung je Seite im Ausfallschritt',
+      '30 Sekunden Hamstring-Dehnung je Seite',
+      '30 Sekunden Brustdehnung im Türrahmen',
+    ],
+  },
+]
+
+/**
+ * Optionales HIIT als Zirkel: Jede Übung 40 Sekunden, 20 Sekunden Pause, danach
+ * die nächste. Nach jeder Runde eine Minute Pause.
+ *
+ * Ersetzt keine Krafteinheit im eigentlichen Sinn — mit Burpees und Sprüngen
+ * wird keine Muskulatur so gefordert, dass sie stärker wird. Es ist eine kurze,
+ * harte Konditionseinheit für Tage, an denen Abwechslung wichtiger ist als
+ * Fortschritt. Deshalb gibt es hier auch keine automatische Steigerung: Mehr
+ * geht, indem man innerhalb der 40 Sekunden mehr Wiederholungen schafft.
+ */
+export const HIIT_KEY = 'HIIT'
+
+export const HIIT_WORKOUT: WorkoutTemplate = {
+  key: HIIT_KEY,
+  name: 'HIIT-Zirkel',
+  focus: 'Burpees, Sprünge, Bergsteiger — hohe Herzfrequenz, Ganzkörper',
+  approxMinutes: 25,
+  shortApproxMinutes: 15,
+  interval: { workSec: 40, restSec: 20, roundRestSec: 60 },
+  warmup: [
+    '1 Minute lockeres Hampelmann-Hüpfen',
+    '10 Kniebeugen ohne Gewicht',
+    '10 Liegestütze auf den Knien oder an der Wand',
+    '20 Sekunden Skippings auf der Stelle, locker',
+  ],
+  blocks: [
+    { exerciseKey: 'burpee', sets: 4, shortSets: 2, restSec: 20 },
+    { exerciseKey: 'jump_squat', sets: 4, shortSets: 2, restSec: 20 },
+    { exerciseKey: 'mountain_climber', sets: 4, shortSets: 2, restSec: 20 },
+    { exerciseKey: 'skater_jump', sets: 4, shortSets: 2, restSec: 20 },
+    { exerciseKey: 'high_knees', sets: 4, shortSets: 2, restSec: 20 },
+  ],
+  cooldown: [
+    '2 Minuten gehen, bis der Atem ruhig ist',
+    '30 Sekunden Hüftbeuger-Dehnung je Seite im Ausfallschritt',
+    '30 Sekunden Wadendehnung je Seite an der Wand',
+  ],
+}
+
+/**
+ * Frühere A/B-Workouts. Werden nicht mehr eingeplant, bleiben aber hier, damit
+ * ältere Einheiten im Verlauf weiter ihren Plan finden.
+ */
+const LEGACY_WORKOUTS: WorkoutTemplate[] = [
   {
     key: 'A',
     name: 'Workout A — Klimmzüge & Liegestütze',
@@ -172,13 +305,12 @@ export const WORKOUTS: WorkoutTemplate[] = [
  * ist, dass es eine bewusste Auswahl ist und nicht einfach abgebrochen wurde.
  */
 export const SHORT_NOTE =
-  'Kurzform: Sprung, Zug, Druck und beide Beinmuster bleiben — also alles, was die Einheit ' +
-  'vollständig macht. Wadenheben und Rumpfarbeit entfallen; die lassen sich am ehesten nebenbei ' +
-  'nachholen. Das Rudern bleibt bewusst drin, solange Liegestütze auf dem Plan stehen. ' +
-  'Das Aufwärmen wird ebenfalls nicht gekürzt — vor Sprüngen ist das der Teil, an dem man nicht spart.'
+  'Kurzform: Zug, Druck, Knie und Hüfte mit je zwei Sätzen und kürzeren Pausen — die vier ' +
+  'Grundbewegungen, also das, was die Einheit vollständig macht. Sprünge, Rudern, Wade, ' +
+  'Adduktoren und Rumpf entfallen. Das Aufwärmen wird nicht gekürzt.'
 
 export const WORKOUT_BY_KEY: Record<string, WorkoutTemplate> = Object.fromEntries(
-  WORKOUTS.map((w) => [w.key, w]),
+  [...WORKOUTS, HIIT_WORKOUT, ...LEGACY_WORKOUTS].map((w) => [w.key, w]),
 )
 
 export function getWorkout(key: string): WorkoutTemplate {

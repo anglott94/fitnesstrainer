@@ -1,7 +1,7 @@
-# Schiri-Trainer
+# Fitnesstrainer
 
-Persönlicher Fitness-Trainer für Landesliga-Schiedsrichter: Lauf- und Krafttraining planen,
-durchs Krafttraining geführt werden, Fortschritte verfolgen.
+Persönlicher Fitness-Trainer für Kraft und Laufen. Das Lauftraining ist auf die
+Anforderungen eines Fußball-Schiedsrichters abgestimmt (Antritte, Tempowechsel, Spielfitness).
 
 Läuft als installierbare Web-App (PWA) vollständig offline. Keine Server, keine Konten,
 keine laufenden Kosten.
@@ -30,6 +30,11 @@ Wochentage — bei Spielansetzungen am Wochenende wäre „Dienstag ist Lauftag"
 Quelle für schlechtes Gewissen. Stattdessen: pro Woche stehen N Einheiten an, du machst
 sie, wann es passt.
 
+**Ein festes Ganzkörper-Workout.** Bei 1–2 Einheiten pro Woche läuft jede Krafteinheit gleich
+ab: Sprung, Zug, Druck, Rudern, Knie, Hüfte, Wade, Adduktoren, Rumpf. Kurzform in rund
+20 Minuten mit den vier Grundbewegungen. Optional ein HIIT-Zirkel (Burpees, Sprünge,
+Bergsteiger) mit Intervall-Timer, 40 s Belastung / 20 s Pause.
+
 **Geführtes Krafttraining.** Satz für Satz abhaken, Wiederholungen per Plus/Minus
 korrigieren, Pausentimer startet automatisch mit der richtigen Länge. Ton, Vibration und
 Bildschirm-Wachhalten sind abschaltbar. Für Halteübungen wie den Copenhagen Plank lässt
@@ -53,180 +58,42 @@ mit der Garmin, danach trägst du Distanz, Zeit und Puls ein.
 umschaltbar per Chip. Gekürzt wird immer der Umfang, nie die Intensität — eine halbierte,
 aber gleich harte Einheit wirkt deutlich mehr als eine gleich lange, aber verwässerte.
 
-**Spielprotokoll.** Nach dem Spiel Positionierung und Disziplinkontrolle bewerten — mit
-beschriebenen Stufen statt nackter 1–5-Skala, damit die Reihe über eine Saison vergleichbar
-bleibt. Plus Laufdistanz aus dem Spiel als objektiver Gegenpol zur Selbsteinschätzung.
-
 **Fortschritt.** Verlauf je Übung (bester Satz oder Summe), Kraftvolumen pro Woche,
-Laufkilometer pro Woche, Einheiten pro Woche, Bestwerte, Wochen-Serie, Verlauf der beiden
-Spielleitungs-Fokuspunkte. Optional Körpergewicht.
+Laufkilometer pro Woche, Einheiten pro Woche, Bestwerte, Wochen-Serie. Optional
+Körpergewicht.
 
 ---
 
 ## Trainingsinhalt
 
-### Krafttraining — zwei Ganzkörper-Workouts im Wechsel
+### Krafttraining — ein Ganzkörper-Workout
 
-Bei 1–2 Einheiten pro Woche ist Ganzkörper deutlich sinnvoller als ein Split: Selbst wenn
-eine Woche nur ein Training zustande kommt, wurde alles belastet.
+Bei 1–2 Einheiten pro Woche läuft jede Krafteinheit gleich ab. Ein Wechsel zwischen
+verschiedenen Workouts hieße, dass jede Übung nur alle ein bis zwei Wochen drankommt.
+Begründung und Quellen stehen in `src/domain/workouts.ts`.
 
-| Muster | Workout A | Workout B |
-| --- | --- | --- |
-| Sprung | Strecksprünge | Seitliche Einbeinsprünge |
-| **Ziehen senkrecht** | **Klimmzüge** (4 Sätze) | — |
-| **Drücken** | **Liegestütze** (4) | Pike Liegestütze (3) |
-| **Ziehen waagerecht** | **Australian Rows** (2) | **Australian Rows** (3) |
-| Knie | Bulgarian Split Squat | Ausfallschritte |
-| Hüfte | Nordic Curls | Einbeiniges Kreuzheben |
-| Vorsorge | Wadenheben einbeinig | Copenhagen Plank |
-| Rumpf | Dead Bug | Seitstütz |
+| Übung                    | Voll       | Kurz       |
+| ------------------------ | ---------- | ---------- |
+| Strecksprünge            | 3 Sätze    | –          |
+| Klimmzüge                | 3 Sätze    | 2 Sätze    |
+| Liegestütze              | 3 Sätze    | 2 Sätze    |
+| Australian Rows          | 2 Sätze    | –          |
+| Bulgarian Split Squat    | 3 Sätze    | 2 Sätze    |
+| Nordic Curls             | 2 Sätze    | 2 Sätze    |
+| Wadenheben einbeinig     | 2 Sätze    | –          |
+| Copenhagen Plank         | 2 Sätze    | –          |
+| Seitstütz                | 2 Sätze    | –          |
+| Dead Bug                 | 2 Sätze    | –          |
+| **Dauer**                | ca. 50 Min | ca. 20 Min |
 
-**Warum in Workout A zusätzlich Rudern steht.** Der Klimmzug ist nicht der Gegenspieler
-zum Liegestütz, sondern zum Überkopfdrücken — er zieht das Schulterblatt nach unten, nicht
-zusammen. Die Muskeln, die es zusammenziehen (Rautenmuskeln, mittlerer Trapez, hintere
-Schulter), arbeiten beim waagerechten Ziehen stark und beim Klimmzug wenig. Ohne diese zwei
-Sätze hätte eine Woche, in der nur Workout A zustande kommt, Drücken ohne jeden waagerechten
-Zug. Sie bleiben deshalb auch in der Kurzform stehen.
+In der Kurzform sind auch die Pausen kürzer (60–75 statt 90–120 Sekunden).
 
-Wochenbilanz: 7 Druck- zu 9 Zugsätzen. Mehr Ziehen als Drücken ist unproblematisch.
+**HIIT-Zirkel (optional).** Burpees, Sprungkniebeugen, Bergsteiger, Eisschnellläufer-Sprünge
+und Skippings, je 40 Sekunden Belastung und 20 Sekunden Pause, 4 Runden mit einer Minute
+Rundenpause. Ein Intervall-Timer führt durch, ohne dass man zwischendurch tippen muss. Zählt
+als Krafteinheit der Woche, steigert aber keine Vorgaben.
 
-**Warum kein Split.** Jede Einheit enthält einen Druck, einen Zug sowie eine knie- und
-eine hüftdominante Beinübung. Physiologisch wäre ein Split gleichwertig: Sobald das
-Wochenvolumen gleich bleibt, macht es für Kraft und Muskelaufbau keinen belegbaren
-Unterschied, ob eine Übung einmal mit vier Sätzen oder zweimal mit zwei trainiert wird
-(Schoenfeld et al., J Sports Sci 2019).
-
-Der Grund ist organisatorisch: Bei ein bis zwei Einheiten pro Woche fällt regelmäßig eine
-aus. Mit einem Split hieße das, in dieser Woche gar nicht gezogen oder gar nicht gedrückt zu
-haben. Vollständige Einheiten machen den Plan gegen Ausfälle robust. Dagegen spricht auch
-nichts: Druck und Zug sind Gegenspieler und ermüden sich gegenseitig kaum — wer Zeit sparen
-will, führt Klimmzüge und Liegestütze im Wechsel mit kürzerer Pause aus.
-
-**Reihenfolge:** Sprünge zuerst (brauchen ein ausgeruhtes Nervensystem, kosten kaum Kraft),
-dann die Zugbewegung als limitierende Übung, dann Drücken, Beine, Vorsorge, Rumpf.
-
-Die Sprünge stehen bewusst ganz vorne: Explosivkraft braucht ein ausgeruhtes Nervensystem,
-nach vier Sätzen Klimmzügen ist der Reiz nur noch halb so viel wert.
-
-**Jede Übung hat eine Progressionsobergrenze.** Ohne sie würde die App die Vorgabe endlos
-hochzählen — nach einem halben Jahr stünden 40 Liegestütze im Satz, und das ist kein
-Kraft-, sondern Ausdauertraining. Hypertrophie und Kraft entstehen über einen weiten
-Lastbereich, solange die Sätze nah ans Muskelversagen gehen (Schoenfeld et al., J Strength
-Cond Res 2017) — bei sehr hohen Wiederholungszahlen fällt der Reiz aber aus diesem Bereich
-heraus. Ist die Grenze erreicht, verweist die App auf die schwerere Variante:
-
-| Übung | Grenze | Danach |
-| --- | --- | --- |
-| Strecksprünge | 8 | Drop Jumps |
-| Seitliche Einbeinsprünge | 10 je Bein | Landung 2 s halten |
-| Klimmzüge | 12 | Pause oben, langsameres Ablassen |
-| Liegestütze | 25 | Füße erhöht |
-| Australian Rows | 20 | Füße erhöht |
-| Nordic Curls | 12 | größerer Bewegungsumfang |
-| Copenhagen Plank | 45 s | unteres Bein anheben |
-| Seitstütz | 60 s | Sternstütz |
-
-Die Grenze bei Nordic Curls entspricht dem Endpunkt des Protokolls aus der Feldstudie von
-Petersen et al. (3 Sätze × 12 Wiederholungen, über zehn Wochen aufgebaut).
-
-#### Klimmzüge mit Unterstützungsband
-
-Acht Wiederholungen mit orangem Band und acht ohne sind völlig verschiedene Leistungen.
-Ohne die Stufe daneben ist die Wiederholungszahl als Verlaufsgröße wertlos — deshalb hängt
-an **jedem Satz** die verwendete Stufe.
-
-| Stufe | Unterstützung | Wechsel bei |
-| --- | --- | --- |
-| Orange | am meisten | 10 saubere Wdh auf allen Sätzen |
-| Gelb | mittel | 10 Wdh |
-| Grün | wenig | 10 Wdh |
-| Ohne Band | keine | Obergrenze 12 Wdh |
-
-Beim Wechsel fällt die Vorgabe auf 5 Wiederholungen zurück. Das ist der Fortschritt, nicht
-sein Gegenteil — und der Verlauf färbt die Punkte nach Stufe ein, damit genau das sichtbar
-bleibt. Liefen die Sätze einer Einheit auf **unterschiedlichen** Stufen, hält die App die
-Vorgabe an: Daraus ließe sich kein Fortschritt ablesen.
-
-Zum Vorgehen selbst: Das Stufenschema ist Trainingspraxis, keine Studienevidenz. Belegt ist,
-dass der entscheidende Reiz die Nähe zum Muskelversagen ist (Schoenfeld et al., J Strength
-Cond Res 2017) — und die stellt eine passende Bandstärke überhaupt erst her.
-
-**Eine Eigenheit von Bändern:** Ein Band zieht umso stärker, je weiter es gedehnt ist. Beim
-Klimmzug heißt das: unten im Hang maximale Unterstützung, oben an der Stange fast keine.
-Der obere Teil bleibt also nahezu unassistiert — dort scheitert man zuerst, und das ist
-normal. Wer gezielt daran arbeiten will, hängt zwei langsam abgelassene Klimmzüge ohne Band
-an; die belasten den gesamten Weg mit vollem Körpergewicht.
-
-**Kraft und Laufen zeitlich trennen.** Ausdauer- und Krafttraining behindern sich, je näher
-sie beieinanderliegen (Interferenzeffekt, Metaanalyse von Wilson et al., J Strength Cond
-Res 2012 — bei Laufen ausgeprägter als bei Radfahren). Bei zwei plus zwei Einheiten pro
-Woche ist das beherrschbar: verschiedene Tage, sonst mindestens sechs Stunden Abstand und
-den Lauf zuerst. Die App weist darauf hin, wenn beides in derselben Woche noch offen ist.
-
-Wer am selben Tag die Kombi-Einheit gelaufen ist, lässt den Sprungblock im Krafttraining
-weg — zwei bis maximal drei Plyometrie-Einheiten pro Woche sind das sinnvolle Maß
-(de Villarreal et al., J Strength Cond Res 2009).
-
-#### Übungen abwählen — ohne den Plan zu zerstören
-
-Unter *Übungen → Übungen auswählen* lässt sich jede der 30 Übungen abschalten. Sie sind
-nach **Bewegungsmustern** gruppiert, sodass immer sichtbar ist, welche Alternativen dasselbe
-abdecken. Wird eine Übung abgewählt, rückt automatisch eine andere aus demselben Muster nach
-— die Struktur des Plans bleibt erhalten, nur die konkrete Übung wechselt.
-
-| Muster | Übungen | Status |
-| --- | --- | --- |
-| Sprungkraft | Strecksprünge, Seitliche Einbeinsprünge, Pogo-Sprünge | Empfohlen |
-| Drücken waagerecht | Liegestütze, Diamant-Liegestütze, Dips | **Pflicht** |
-| Drücken über Kopf | Pike Liegestütze, Wandlauf zum Handstand | Optional |
-| Ziehen senkrecht | Klimmzüge Ober-/Untergriff | **Pflicht** |
-| Ziehen waagerecht | Australian Rows, Türrudern, Rucksack-Rudern | **Pflicht** |
-| Beine knie-dominant | Split Squat, Ausfallschritte, Step-ups | **Pflicht** |
-| Beine hüft-dominant | Nordic Curls, einbeiniges Kreuzheben, Hüftbrücke, Good Mornings | **Pflicht** |
-| Wade | Wadenheben gestreckt / gebeugt | Empfohlen |
-| Adduktoren | Copenhagen Plank, Adduktoren-Isometrie | Empfohlen |
-| Hüftabduktoren | Seitliches Beinheben | Optional |
-| Rumpf gegen Überstreckung | Dead Bug, Unterarmstütz | Empfohlen |
-| Rumpf gegen seitliches Kippen | Seitstütz, Koffertragen | Empfohlen |
-| Rumpf gegen Rotation | Bird Dog | Optional |
-
-Die **letzte Übung eines Pflichtmusters lässt sich nicht abwählen** — lieber ein gesperrter
-Schalter als ein Plan, der stillschweigend eine Körperregion auslässt. Wird ein empfohlenes
-Muster leer, erscheint ein Hinweis mit der Begründung.
-
-Die Auswahlseite zeigt außerdem laufend das **Verhältnis von Zug- zu Drucksätzen** pro Woche.
-Beide Workouts sind so aufgebaut, dass mindestens so viele Zug- wie Drucksätze zusammenkommen
-(aktuell 7:7); abwählen kann das nicht kippen, weil immer eine Übung desselben Musters
-nachrückt.
-
-**Zur Einordnung der Push/Pull-Regel:** Dass mindestens ebenso viel gezogen wie gedrückt
-werden sollte, ist ein Grundsatz aus der Trainingslehre — begründet damit, dass die
-schulterblattführenden Muskeln beim Drücken kaum arbeiten. Die verbreitete Behauptung, viel
-Drücken verursache einen Rundrücken, ist dagegen **nicht belegt**: Übersichtsarbeiten finden
-zwischen Haltung und Schulter- oder Nackenbeschwerden nur schwache und inkonsistente
-Zusammenhänge (u. a. Barrett et al., Manual Therapy 2016). Die App behauptet das deshalb auch
-nicht.
-
-**Warum diese Auswahl.** Klimmzüge und Liegestütze decken den Oberkörper gut ab, lassen
-aber die drei Lücken offen, die für jemanden mit viel Lauf- und Sprintbelastung
-gesundheitlich am wichtigsten sind:
-
-- **Beinrückseite** → Nordic Curls. Die wirksamste bekannte Übung gegen
-  Oberschenkelzerrungen: Die Metaanalyse von **van Dyk et al.** (BJSM 2019) kommt über
-  mehrere Studien auf rund 50 % weniger Hamstring-Verletzungen, die Feldstudie von
-  **Petersen et al.** (AJSM 2011) im dänischen Fußball auf noch deutlichere Werte.
-- **Adduktoren / Leiste** → Copenhagen Plank. Klassische Problemzone bei Schiedsrichtern,
-  weil viel seitlich und rückwärts gelaufen wird. **Harøy et al.** (BJSM 2019) fanden mit
-  einem Adduktorenprogramm rund 41 % weniger Leistenprobleme.
-- **Wade / Achillessehne** → einbeiniges Wadenheben. Beim Sprint und Abstoppen wirken
-  Kräfte weit über Körpergewicht.
-
-Dazu **Rudern als Gegenspieler zum Drücken** (Haltung, Schultergesundheit) — ohne Geräte
-als *Australian Rows* unter einem stabilen Tisch, an einer tief eingehängten Klimmzugstange
-oder mit einem Handtuch um die Türklinke. Und eine **einbeinige Beinübung**, weil Laufen
-einbeinig passiert und Seitenunterschiede sonst unbemerkt zu Überlastung führen.
-
-Jede Übung hat in der App eine leichtere und eine schwerere Variante hinterlegt.
+Frühere Einheiten aus den alten Workouts A und B bleiben im Verlauf erhalten.
 
 ### Laufen — Ziel Spielfitness
 
@@ -266,7 +133,7 @@ der Laufseite (Laufen).
 
 | Einheit | Voll | Kurz | Was wegfällt |
 | --- | --- | --- | --- |
-| Workout A / B | 35 Min | 22 Min | Zwei Übungen vom Ende, ein Satz je Übung |
+| Ganzkörper | 50 Min | 20 Min | Vier Grundbewegungen à 2 Sätze, kürzere Pausen |
 | Kombi 4×4 | 62 Min | 28 Min | 4 × 4 Min → 10 × 30/30, vier statt sechs Sprints |
 | Kombi RSA | 58 Min | 26 Min | Intervallblock entfällt, Sprintteil bleibt |
 | Schiri-Intervalle | 50 Min | 26 Min | 2 × 8 statt 3 × 10 Wiederholungen |
@@ -330,18 +197,6 @@ angezeigte Karvonen-Angabe ein. Eine Unsicherheit dort ist also unkritisch.
 
 Den Test alle 8–12 Wochen wiederholen. Sonst trainierst du irgendwann nach Zahlen von
 gestern.
-
-### Spielleitung
-
-Nach jedem Spiel lassen sich die zwei Fokuspunkte aus den Beobachterbögen bewerten:
-**Positionierung** und **Disziplinkontrolle**, jeweils auf einer Skala mit beschriebenen
-Stufen (von „oft zu weit weg, Szenen aus der Distanz beurteilt" bis „durchgehend nah dran,
-freie Sicht auf alle Zweikämpfe"). Eine nackte 1–5-Skala driftet über eine Saison; mit
-Ankertexten bleibt die Reihe vergleichbar.
-
-Dazu Laufdistanz und Puls aus dem Spiel — die Distanz ist der ehrlichste Gradmesser für
-Positionierung: Wer nah am Geschehen bleibt, läuft mehr, nicht weniger. Und ein Feld für
-die schwierigste Szene, aus dem der nächste Fokuspunkt entsteht.
 
 > Die App ersetzt keinen ärztlichen Rat. Bei Schmerzen, die über normalen Muskelkater
 > hinausgehen, pausieren und abklären lassen.
@@ -434,7 +289,7 @@ src/
   domain/          Fachlogik, frei von React
     types.ts       Datenmodell
     exercises.ts   Übungsbibliothek mit Ausführung und Varianten
-    workouts.ts    Workout A und B
+    workouts.ts    Ganzkörper-Workout, HIIT-Zirkel
     zones.ts       Puls- und Tempozonen aus den Leistungsdaten
     runs.ts        Laufeinheiten inklusive Garmin-Vorgaben
     plan.ts        4-Wochen-Blöcke, Wochenplan, Entlastungswoche

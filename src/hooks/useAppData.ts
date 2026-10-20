@@ -133,7 +133,6 @@ export function useWeekStatus(settings: Settings): WeekStatus {
     startDate: settings.startDate,
     runsPerWeek: settings.runsPerWeek,
     strengthPerWeek: settings.strengthPerWeek,
-    completedStrengthCount: doneStrength.length,
   })
 
   // Bereits erledigte Einheiten aus der Wochenliste streichen. Bei Kraft nach

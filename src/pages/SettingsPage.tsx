@@ -11,7 +11,6 @@ import { downloadBackup } from '../lib/backupFile'
 import {
   useBackupStatus,
   useDoneStrengthSessions,
-  useMatches,
   useRunSessions,
   useSettings,
   useZones,
@@ -25,7 +24,6 @@ export default function SettingsPage() {
   const settings = useSettings()
   const strength = useDoneStrengthSessions()
   const runs = useRunSessions()
-  const matches = useMatches()
   const fileInput = useRef<HTMLInputElement>(null)
   const [toast, setToast] = useState<string | null>(null)
   const { newSinceBackup } = useBackupStatus(settings)
@@ -59,7 +57,7 @@ export default function SettingsPage() {
       const result = await importBackup(JSON.parse(text))
       const skipped = result.skipped > 0 ? `, ${result.skipped} unlesbar übersprungen` : ''
       setToast(
-        `Eingespielt: ${result.strengthSessions} Krafteinheiten, ${result.runSessions} Läufe, ${result.matches} Spiele${skipped}`,
+        `Eingespielt: ${result.strengthSessions} Krafteinheiten, ${result.runSessions} Läufe${skipped}`,
       )
     } catch (error) {
       setToast(error instanceof Error ? error.message : 'Datei konnte nicht gelesen werden')
@@ -98,8 +96,7 @@ export default function SettingsPage() {
     <div className="page">
       <h1 className="page-title">Einstellungen</h1>
       <p className="page-subtitle">
-        {totalSessions} Einheiten und {matches.length}{' '}
-        {matches.length === 1 ? 'Spiel' : 'Spiele'} gespeichert.
+        {totalSessions} Einheiten gespeichert.
       </p>
 
       {/* Steht bewusst ganz oben: Wenn etwas nicht funktioniert, ist die erste
@@ -224,7 +221,7 @@ export default function SettingsPage() {
       <h2 className="section-title">Über die App</h2>
       <div className="card">
         <p className="small muted" style={{ marginTop: 0 }}>
-          Schiri-Trainer läuft vollständig offline. Zum Installieren auf dem Handy: im Browser das
+          Der Fitnesstrainer läuft vollständig offline. Zum Installieren auf dem Handy: im Browser das
           Teilen- bzw. Menü-Symbol antippen und „Zum Startbildschirm hinzufügen" wählen.
         </p>
         <p className="tiny dim" style={{ margin: 0 }}>
