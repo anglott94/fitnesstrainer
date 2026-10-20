@@ -67,11 +67,11 @@ export const WORKOUTS: WorkoutTemplate[] = [
       },
       { exerciseKey: 'pushup', sets: 3, shortSets: 2, restSec: 90, shortRestSec: 60 },
       {
-        exerciseKey: 'row_inverted',
+        exerciseKey: 'band_row',
         sets: 2,
         shortSets: 0,
         restSec: 75,
-        note: 'Der direkte Gegenspieler zum Liegestütz: zieht die Schulterblätter wieder zusammen, was der Klimmzug nur wenig tut.',
+        note: 'Der direkte Gegenspieler zum Liegestütz: zieht die Schulterblätter wieder zusammen, was der Klimmzug nur wenig tut. Mit dem orangen Band starten. Wird es zu leicht, Band kürzer greifen oder stärkeres Band.',
       },
       {
         exerciseKey: 'split_squat',

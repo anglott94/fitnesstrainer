@@ -77,7 +77,7 @@ Begründung und Quellen stehen in `src/domain/workouts.ts`.
 | Strecksprünge            | 3 Sätze    | –          |
 | Klimmzüge                | 3 Sätze    | 2 Sätze    |
 | Liegestütze              | 3 Sätze    | 2 Sätze    |
-| Australian Rows          | 2 Sätze    | –          |
+| Rudern mit Band im Sitzen | 2 Sätze   | –          |
 | Bulgarian Split Squat    | 3 Sätze    | 2 Sätze    |
 | Nordic Curls             | 2 Sätze    | 2 Sätze    |
 | Wadenheben einbeinig     | 2 Sätze    | –          |

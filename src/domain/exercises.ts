@@ -250,6 +250,26 @@ export const EXERCISES: Exercise[] = [
     maxTarget: 20,
   },
   {
+    key: 'band_row',
+    name: 'Rudern mit Band im Sitzen',
+    pattern: 'pull_horizontal',
+    unilateral: false,
+    unit: 'reps',
+    why: 'Waagerechtes Ziehen ohne Tisch oder Tür, nur mit einem Widerstandsband. Trifft dieselben Muskeln zwischen den Schulterblättern wie das Tischrudern und ist damit der Gegenspieler zum Liegestütz.',
+    setup:
+      'Aufrecht auf den Boden setzen, Beine gestreckt. Das Band mittig um beide Fußsohlen legen, die Enden in die Hände nehmen. Mit gestreckten Armen so weit zurücksetzen, dass das Band schon leicht gespannt ist.',
+    cues: [
+      'Erst die Schulterblätter zusammen- und nach unten ziehen, dann die Ellenbogen eng am Körper nach hinten',
+      'Oberkörper bleibt aufrecht — nicht mit dem Rücken nach hinten lehnen, um Schwung zu holen',
+      'Hinten kurz halten, dann langsam nachgeben lassen',
+    ],
+    easier: 'Band weiter vorne greifen (weniger Spannung) oder ein leichteres Band nehmen.',
+    harder: 'Band kürzer greifen, hinten 2 Sekunden halten, oder ein stärkeres Band nehmen.',
+    startTarget: 12,
+    increment: 2,
+    maxTarget: 20,
+  },
+  {
     key: 'door_row',
     name: 'Türrudern mit Handtuch',
     pattern: 'pull_horizontal',
