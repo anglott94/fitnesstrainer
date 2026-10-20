@@ -10,7 +10,13 @@ export default function Exercises() {
   const states = useExerciseStates()
   const settings = useSettings()
   const disabled = settings.disabledExercises
-  const scheduled = useMemo(() => scheduledExerciseKeys(disabled), [disabled])
+  const preferences = settings.exercisePreferences
+  // Mit den Wunschübungen auflösen — sonst zeigt die Übersicht noch die Vorlage an,
+  // obwohl im Plan längst getauscht ist.
+  const scheduled = useMemo(
+    () => scheduledExerciseKeys(disabled, preferences),
+    [disabled, preferences],
+  )
 
   return (
     <div className="page">
