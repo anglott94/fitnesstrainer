@@ -5,7 +5,9 @@ import { defaultLevel, ladderFor } from '../domain/assistance'
 import { setExerciseTarget } from '../db/repo'
 import { IconMinus, IconPlus } from '../components/icons'
 import { HIIT_WORKOUT, WORKOUTS } from '../domain/workouts'
-import { useDoneStrengthSessions, useExerciseStates } from '../hooks/useAppData'
+import { useDoneStrengthSessions, useExerciseStates, useSettings } from '../hooks/useAppData'
+import { scheduledExerciseKeys } from '../domain/balance'
+import { updateSettings } from '../db/db'
 import { LineChart } from '../components/Chart'
 import { bestSetSeries, personalBest } from '../lib/stats'
 
@@ -13,6 +15,7 @@ export default function ExerciseDetail() {
   const { key } = useParams<{ key: string }>()
   const states = useExerciseStates()
   const sessions = useDoneStrengthSessions()
+  const settings = useSettings()
 
   if (!key || !EXERCISE_BY_KEY[key]) {
     return (
@@ -28,6 +31,17 @@ export default function ExerciseDetail() {
   const ex = getExercise(key)
   const pattern = getPattern(ex.pattern)
   const alternatives = exercisesForPattern(ex.pattern).filter((e) => e.key !== ex.key)
+  const scheduled = scheduledExerciseKeys(settings.disabledExercises, settings.exercisePreferences)
+  const inPlan = scheduled.has(ex.key)
+  // Die Übung, die gerade für dieses Muster im Plan steht und ersetzt würde.
+  const replaces = alternatives.find((e) => scheduled.has(e.key))
+
+  async function takeIntoPlan() {
+    await updateSettings({
+      exercisePreferences: { ...settings.exercisePreferences, [ex.pattern]: ex.key },
+      disabledExercises: settings.disabledExercises.filter((k) => k !== ex.key),
+    })
+  }
   const state = states.find((s) => s.key === key)
   const target = state?.target ?? ex.startTarget
   const ladder = ladderFor(ex.assistLadder)
@@ -59,6 +73,26 @@ export default function ExerciseDetail() {
         {ex.unilateral ? ' je Seite' : ''}
         {best > 0 ? ` · Bestwert ${best}${unit}` : ''}
       </p>
+
+      {!inPlan && replaces && (
+        <div className="card card-tight" style={{ marginBottom: 12 }}>
+          <p className="small" style={{ margin: '0 0 10px' }}>
+            Im Plan steht gerade <strong>{replaces.name}</strong>.
+          </p>
+          <button className="btn btn-primary btn-block" onClick={() => void takeIntoPlan()}>
+            Stattdessen {ex.name} machen
+          </button>
+          <p className="tiny dim" style={{ margin: '8px 0 0' }}>
+            Gilt ab der nächsten Einheit. In einer laufenden Einheit tauschst du direkt bei der
+            Übung über „Tauschen".
+          </p>
+        </div>
+      )}
+      {inPlan && (
+        <p className="small" style={{ margin: '0 0 12px', color: 'var(--accent)' }}>
+          Diese Übung steht im Plan.
+        </p>
+      )}
 
       <div className="card card-accent">
         <strong className="small">Wofür sie gut ist</strong>

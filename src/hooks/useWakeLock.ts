@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * Hält das Display während einer laufenden Einheit an.
+ * Hält das Display an, solange die App im Vordergrund ist.
  *
- * Ohne das geht der Bildschirm mitten im Satz aus und die Pausenzeit läuft
- * unbemerkt weiter. Die Wake Lock API gibt es nicht in jedem Browser (iOS erst
+ * Ohne das geht der Bildschirm mitten im Satz, im HIIT-Timer oder beim Ablesen
+ * einer Laufvorgabe aus. Die Wake Lock API gibt es nicht in jedem Browser (iOS erst
  * ab Safari 16.4) — fehlt sie, passiert einfach nichts.
  */
 export function useWakeLock(enabled: boolean): void {

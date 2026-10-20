@@ -3,6 +3,8 @@ import { ErrorToastProvider } from './components/ErrorToast'
 import { Nav } from './components/Nav'
 import { UpdatePrompt } from './components/UpdatePrompt'
 import { useRouteAnnounce } from './hooks/useRouteAnnounce'
+import { useWakeLock } from './hooks/useWakeLock'
+import { useSettings } from './hooks/useAppData'
 import Today from './pages/Today'
 import StrengthSessionPage from './pages/StrengthSessionPage'
 import RunDetail from './pages/RunDetail'
@@ -20,6 +22,9 @@ export default function App() {
   // Navigation würde dort nur im Weg sein und zu Fehlgriffen führen.
   const hideNav = location.pathname.startsWith('/kraft/')
   useRouteAnnounce()
+  const settings = useSettings()
+  // Solange die App offen ist, bleibt das Display an — nicht nur im Krafttraining.
+  useWakeLock(settings.keepScreenAwake)
 
   return (
     <ErrorToastProvider>

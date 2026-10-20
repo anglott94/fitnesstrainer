@@ -16,8 +16,8 @@ export default function Exercises() {
     <div className="page">
       <h1 className="page-title">Übungen</h1>
       <p className="page-subtitle">
-        Nach Bewegungsmustern geordnet. Innerhalb eines Musters können sich die Übungen gegenseitig
-        ersetzen.
+        Nach Bewegungsmustern geordnet. Zum Tauschen eine Übung antippen und „Stattdessen … machen"
+        wählen.
       </p>
 
       <Link to="/uebungen/auswahl" className="card card-accent card-button">

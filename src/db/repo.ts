@@ -4,7 +4,8 @@ import { getWorkout } from '../domain/workouts'
 import { getExercise } from '../domain/exercises'
 import { defaultLevel } from '../domain/assistance'
 import { getRun } from '../domain/runs'
-import { buildSets, evaluateSession, type ProgressionChange } from '../domain/progression'
+import { buildSets, evaluateSession, targetFor, type ProgressionChange } from '../domain/progression'
+import { adjustTarget } from '../domain/plan'
 import { todayISO } from '../lib/date'
 
 // ---------------------------------------------------------------------------
@@ -133,6 +134,34 @@ export async function addExtraSet(sessionId: number, exerciseKey: string): Promi
     // Direkt hinter den letzten Satz derselben Übung einfügen.
     const insertAt = session.sets.lastIndexOf(last) + 1
     const sets = [...session.sets.slice(0, insertAt), extra, ...session.sets.slice(insertAt)]
+    await db.strengthSessions.update(sessionId, { sets })
+  })
+}
+
+/**
+ * Tauscht in der laufenden Einheit eine Übung gegen eine andere aus. Nur noch offene
+ * Sätze wechseln — abgehakte bleiben, was sie waren. Die neue Übung bekommt ihre
+ * eigene Vorgabe, weil 12 Dead Bugs nichts über Sekunden im Unterarmstütz sagen.
+ */
+export async function swapExerciseInSession(
+  sessionId: number,
+  fromKey: string,
+  toKey: string,
+): Promise<void> {
+  await db.transaction('rw', [db.strengthSessions, db.exerciseStates], async () => {
+    const session = await db.strengthSessions.get(sessionId)
+    if (!session) return
+    const states = await db.exerciseStates.toArray()
+    const ex = getExercise(toKey)
+    const target = adjustTarget(targetFor(toKey, states), session.deload, ex.unit)
+    const assist = ex.assistLadder
+      ? (states.find((s) => s.key === toKey)?.assist ?? defaultLevel(ex.assistLadder))
+      : undefined
+    const sets = session.sets.map((s) =>
+      s.exerciseKey === fromKey && !s.done
+        ? { exerciseKey: toKey, setIndex: s.setIndex, target, actual: null, done: false, assist }
+        : s,
+    )
     await db.strengthSessions.update(sessionId, { sets })
   })
 }

@@ -122,7 +122,7 @@ export default function SettingsPage() {
         />
         <Toggle
           label="Display anlassen"
-          hint="Verhindert, dass der Bildschirm mitten im Satz ausgeht."
+          hint="Solange die App offen ist, geht der Bildschirm nicht aus."
           value={settings.keepScreenAwake}
           onChange={(v) => void updateSettings({ keepScreenAwake: v })}
         />

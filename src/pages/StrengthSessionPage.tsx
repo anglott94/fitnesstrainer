@@ -9,16 +9,17 @@ import {
   patchSet,
   removeLastSet,
   setAssistLevel,
+  swapExerciseInSession,
 } from '../db/repo'
+import { updateSettings } from '../db/db'
 import { ladderFor, levelFor } from '../domain/assistance'
 import { getWorkout, SHORT_NOTE } from '../domain/workouts'
-import { getExercise } from '../domain/exercises'
+import { exercisesForPattern, getExercise } from '../domain/exercises'
 import type { ProgressionChange } from '../domain/progression'
 import { sessionVolume } from '../domain/progression'
 import type { SetLog, StrengthSession } from '../domain/types'
 import { useSettings } from '../hooks/useAppData'
 import { useRestTimer } from '../hooks/useRestTimer'
-import { useWakeLock } from '../hooks/useWakeLock'
 import { RestTimerBar } from '../components/RestTimerBar'
 import { useWriteGuard } from '../components/ErrorToast'
 import { IconCheck, IconChevronDown, IconMinus, IconPlus } from '../components/icons'
@@ -56,7 +57,6 @@ export default function StrengthSessionPage() {
   const [now, setNow] = useState(() => Date.now())
   const guard = useWriteGuard()
 
-  useWakeLock(settings.keepScreenAwake && phase === 'training')
 
   // Die Trainingsdauer im Kopf soll auch dann weiterlaufen, wenn gerade nichts
   // angetippt wird und kein Pausentimer die Ansicht ohnehin neu zeichnet.
@@ -287,6 +287,22 @@ export default function StrengthSessionPage() {
               onSetAssist={(level) =>
                 void guard(() => setAssistLevel(sessionId, group.exerciseKey, level))
               }
+              alternatives={exercisesForPattern(getExercise(group.exerciseKey).pattern)
+                .filter((e) => !settings.disabledExercises.includes(e.key))
+                .filter((e) => !session.sets.some((s) => s.exerciseKey === e.key))
+                .map((e) => ({ key: e.key, name: e.name }))}
+              onSwap={(toKey, remember) =>
+                void guard(async () => {
+                  await swapExerciseInSession(sessionId, group.exerciseKey, toKey)
+                  if (remember) {
+                    const pattern = getExercise(toKey).pattern
+                    await updateSettings({
+                      exercisePreferences: { ...settings.exercisePreferences, [pattern]: toKey },
+                    })
+                  }
+                  setExpanded(toKey)
+                })
+              }
               onStartHold={(seconds) => {
                 unlockAudio()
                 restTimer.start(seconds, 'Halten')
@@ -334,6 +350,8 @@ function ExerciseCard({
   onRemoveSet,
   onStartHold,
   onSetAssist,
+  alternatives,
+  onSwap,
 }: {
   group: Group
   index: number
@@ -345,9 +363,16 @@ function ExerciseCard({
   onRemoveSet: () => void
   onStartHold: (seconds: number) => void
   onSetAssist: (level: string) => void
+  /** Übungen desselben Musters, die noch nicht in der Einheit stehen. */
+  alternatives: { key: string; name: string }[]
+  onSwap: (toKey: string, remember: boolean) => void
 }) {
   const ex = getExercise(group.exerciseKey)
   const [showHelp, setShowHelp] = useState(false)
+  const [showSwap, setShowSwap] = useState(false)
+  const [remember, setRemember] = useState(true)
+  // Getauscht werden nur offene Sätze; ist alles erledigt, gibt es nichts mehr zu tauschen.
+  const canSwap = alternatives.length > 0 && group.sets.some((s) => !s.done)
   const complete = group.sets.every((s) => s.done)
   const doneSets = group.sets.filter((s) => s.done).length
   const isSeconds = ex.unit === 'seconds'
@@ -523,18 +548,60 @@ function ExerciseCard({
             </button>
           )}
 
-          <div className="row" style={{ marginTop: 12, gap: 8 }}>
-            <button className="btn btn-ghost btn-sm" onClick={onAddSet}>
+          <div className="row" style={{ marginTop: 12, gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn-ghost btn-sm nowrap" onClick={onAddSet}>
               + Satz
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={onRemoveSet}>
+            <button className="btn btn-ghost btn-sm nowrap" onClick={onRemoveSet}>
               − Satz
             </button>
             <span className="spacer" />
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowHelp((v) => !v)}>
-              {showHelp ? 'Hinweise aus' : 'Wie geht das?'}
+            {canSwap && (
+              <button
+                className="btn btn-ghost btn-sm nowrap"
+                onClick={() => setShowSwap((v) => !v)}
+                aria-expanded={showSwap}
+              >
+                Tauschen
+              </button>
+            )}
+            <button className="btn btn-ghost btn-sm nowrap" onClick={() => setShowHelp((v) => !v)}>
+              {showHelp ? 'Schließen' : 'Anleitung'}
             </button>
           </div>
+
+          {showSwap && canSwap && (
+            <div className="card card-tight" style={{ marginTop: 12 }}>
+              <span className="field-label" style={{ display: 'block', marginBottom: 8 }}>
+                Stattdessen machen
+              </span>
+              <div className="chip-row">
+                {alternatives.map((alt) => (
+                  <button
+                    key={alt.key}
+                    className="chip"
+                    onClick={() => {
+                      setShowSwap(false)
+                      onSwap(alt.key, remember)
+                    }}
+                  >
+                    {alt.name}
+                  </button>
+                ))}
+              </div>
+              <label className="row" style={{ gap: 8, marginTop: 12, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                />
+                <span className="tiny muted">Auch in künftigen Einheiten verwenden</span>
+              </label>
+              <p className="tiny dim" style={{ margin: '8px 0 0' }}>
+                Gilt für die noch offenen Sätze. Die neue Übung bekommt ihre eigene Vorgabe.
+              </p>
+            </div>
+          )}
 
           {showHelp && (
             <div style={{ marginTop: 14 }}>
